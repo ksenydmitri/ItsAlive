@@ -44,7 +44,7 @@ internal class PairingRepositoryImpl @Inject constructor(
                 hostId = hostUserId,
                 friendId = null,
                 status = "WAITING",
-                createdAt = Date(),
+                createdAt = Date().time,
                 pet = JointPetDto(
                     id = UUID.randomUUID().toString(),
                     name = petName,
@@ -81,9 +81,5 @@ internal class PairingRepositoryImpl @Inject constructor(
 
     override fun observeRoomState(roomId: String): Flow<PairingRoom> {
         TODO("Not yet implemented")
-    }
-
-    private fun generateUniqueCode(): String {
-        return (100000..999999).random().toString()
     }
 }

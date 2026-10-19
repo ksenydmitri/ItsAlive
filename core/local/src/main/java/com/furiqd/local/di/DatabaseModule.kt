@@ -2,6 +2,7 @@ package com.furiqd.local.di
 
 import android.content.Context
 import androidx.room.Room
+import com.furiqd.local.room.DailyChallengeDao
 import com.furiqd.local.room.LocalDatabase
 import com.furiqd.local.room.PetDao
 import com.furiqd.local.room.UserDao
@@ -40,5 +41,11 @@ object DatabaseModule {
     @Singleton
     fun providePetDao(database: LocalDatabase): PetDao {
         return database.petDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideChallengeDao(database: LocalDatabase): DailyChallengeDao {
+        return database.challengeDao()
     }
 }

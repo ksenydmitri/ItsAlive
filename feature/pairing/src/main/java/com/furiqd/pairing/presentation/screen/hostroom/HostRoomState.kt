@@ -7,7 +7,7 @@ sealed interface HostRoomState {
 
     data class Success(
         val room: PairingRoom,
-        val formattedTimeLeft: String?,
+        val timeLeft: Long?,
         val isExpired: Boolean,
         val isCopied: Boolean
     ) : HostRoomState

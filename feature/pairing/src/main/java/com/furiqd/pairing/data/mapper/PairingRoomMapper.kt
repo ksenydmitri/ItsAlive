@@ -18,24 +18,8 @@ fun PairingRoomDto.toDomain(): PairingRoom {
         friendId = this.friendId,
         pet = this.pet.toDomain(),
         createdAt = this.createdAt,
-        status = domainStatus
-    )
-}
-
-fun PairingRoom.toDto(): PairingRoomDto {
-    val stringStatus = when (this.status) {
-        is RoomStatus.WaitingForFriend -> "WAITING"
-        is RoomStatus.Active -> "ACTIVE"
-        is RoomStatus.NotFound -> "NOT_FOUND"
-    }
-
-    return PairingRoomDto(
-        id = this.id,
-        code = this.code,
-        hostId = this.hostId,
-        friendId = this.friendId,
-        pet = this.pet.toDto(),
-        createdAt = this.createdAt,
-        status = stringStatus
+        status = domainStatus,
+        isStreakActive = this.isStreakActive,
+        streakCount = this.streakCount
     )
 }

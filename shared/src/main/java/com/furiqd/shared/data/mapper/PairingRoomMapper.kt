@@ -1,41 +1,79 @@
 package com.furiqd.shared.data.mapper
 
+import com.furiqd.network.dto.ChallengeTaskDto
+import com.furiqd.network.dto.DailyChallengeDto
+import com.furiqd.network.dto.PairingRoomDto
+import com.furiqd.shared.domain.model.ChallengeTask
+import com.furiqd.shared.domain.model.DailyChallenge
 import com.furiqd.shared.domain.model.PairingRoom
 import com.furiqd.shared.domain.model.RoomStatus
-import com.furiqd.network.dto.PairingRoomDto
+import java.util.Date
+import javax.inject.Inject
+import javax.inject.Singleton
 
-fun PairingRoomDto.toDomain(): PairingRoom {
-    val domainStatus = when (this.status.uppercase()) {
-        "WAITING" -> RoomStatus.WaitingForFriend
-        "ACTIVE" -> RoomStatus.Active
-        else -> RoomStatus.NotFound
+@Singleton
+class RoomMapper @Inject constructor(
+    private val imageUrlFormatter: ImageUrlFormatter
+) {
+    fun toDomain(
+        dto: PairingRoomDto,
+        challengeDto: DailyChallengeDto? = null
+    ): PairingRoom {
+        val domainStatus = when (dto.status.uppercase()) {
+            "WAITING" -> RoomStatus.WaitingForFriend
+            "ACTIVE" -> RoomStatus.Active
+            else -> RoomStatus.NotFound
+        }
+
+        return PairingRoom(
+            id = dto.id,
+            code = dto.code,
+            hostId = dto.hostId,
+            friendId = dto.friendId,
+            pet = dto.pet.toDomain(),
+            createdAt = dto.createdAt.time,
+            status = domainStatus,
+            challenge = challengeDto?.toDomain(),
+            isStreakActive = dto.isStreakActive,
+            streakCount = dto.streakCount
+        )
     }
 
-    return PairingRoom(
-        id = this.id,
-        code = this.code,
-        hostId = this.hostId,
-        friendId = this.friendId,
-        pet = this.pet.toDomain(),
-        createdAt = this.createdAt,
-        status = domainStatus
-    )
-}
+    fun toDto(domain: PairingRoom): PairingRoomDto {
+        val stringStatus = when (domain.status) {
+            is RoomStatus.WaitingForFriend -> "WAITING"
+            is RoomStatus.Active -> "ACTIVE"
+            is RoomStatus.NotFound -> "NOT_FOUND"
+        }
 
-fun PairingRoom.toDto(): PairingRoomDto {
-    val stringStatus = when (this.status) {
-        is RoomStatus.WaitingForFriend -> "WAITING"
-        is RoomStatus.Active -> "ACTIVE"
-        is RoomStatus.NotFound -> "NOT_FOUND"
+        return PairingRoomDto(
+            id = domain.id,
+            code = domain.code,
+            hostId = domain.hostId,
+            friendId = domain.friendId,
+            pet = domain.pet.toDto(),
+            createdAt = Date(domain.createdAt),
+            status = stringStatus,
+            challengeId = domain.challenge?.id
+        )
     }
 
-    return PairingRoomDto(
-        id = this.id,
-        code = this.code,
-        hostId = this.hostId,
-        friendId = this.friendId,
-        pet = this.pet.toDto(),
-        createdAt = this.createdAt,
-        status = stringStatus
-    )
+    private fun DailyChallengeDto.toDomain(): DailyChallenge {
+        return DailyChallenge(
+            id = id,
+            isActiveHour = isActiveHour,
+            expiresAt = expiresAt,
+            task = task?.toDomain(),
+            userPhotoUrl = imageUrlFormatter.format(userPhotoUrl),
+            friendPhotoUrl = imageUrlFormatter.format(friendPhotoUrl),
+            compositeImageUrl = imageUrlFormatter.format(compositeImageUrl)
+        )
+    }
+
+    private fun ChallengeTaskDto.toDomain(): ChallengeTask {
+        return ChallengeTask(
+            userTaskPrompt = userTaskPrompt,
+            friendTaskPrompt = friendTaskPrompt
+        )
+    }
 }

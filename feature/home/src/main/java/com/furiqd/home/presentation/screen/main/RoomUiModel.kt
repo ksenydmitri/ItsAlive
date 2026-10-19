@@ -1,5 +1,7 @@
 package com.furiqd.home.presentation.screen.main
 
+import com.furiqd.home.presentation.navigation.ChallengeUiModel
+
 sealed interface RoomUiModel {
     val id: String
     val isSelected: Boolean
@@ -11,27 +13,20 @@ sealed interface RoomUiModel {
         val petName: String,
         val petAvatarId: Int,
         val expiringTime: Long,
-        val userAvatarUrl: String? = null,
-        val friendAvatarUrl: String? = null
+        val userAvatarUrl: String? = null
     ) : RoomUiModel
 
     data class Active(
         override val id: String,
         override val isSelected: Boolean = false,
-        val name: String,
         val petName: String,
         val petAvatarId: Int,
         val userAvatarUrl: String?,
         val friendAvatarUrl: String?,
-        val isStreakActive: Boolean = true,
-        val streakCount: Int = 12,
-        val isActiveHour: Boolean = true,
-        val timeLeft: String = "42:15",
-        val userTask: String = "Green & Round",
-        val friendTask: String = "Blue & Square",
-        val isUserPhotoDone: Boolean = false,
-        val isFriendPhotoDone: Boolean = true,
-        val compositeImageUri: String? = null
+        val isStreakActive: Boolean,
+        val streakCount: Int,
+        val isActiveHour: Boolean,
+        val challengeUiModel: ChallengeUiModel?
     ) : RoomUiModel
 
     data class Placeholder(

@@ -1,7 +1,6 @@
 package com.furiqd.shared.domain.model
 
-import java.util.Calendar
-import java.util.Date
+import java.util.concurrent.TimeUnit
 
 data class PairingRoom(
     val id: String = "",
@@ -9,13 +8,19 @@ data class PairingRoom(
     val hostId: String = "",
     val friendId: String? = null,
     val pet: JointPet = JointPet(),
-    val createdAt: Date = Date(),
-    val status: RoomStatus = RoomStatus.NotFound
-){
-    val isExpired: Boolean
-        get() {
-            val cal = Calendar.getInstance().apply { time = createdAt }
-            cal.add(Calendar.HOUR, 24)
-            return Date().after(cal.time)
-        }
+    val createdAt: Long = 0L,
+    val status: RoomStatus = RoomStatus.WaitingForFriend,
+    val challenge: DailyChallenge? = null,
+    val isStreakActive: Boolean,
+    val streakCount: Int
+) {
+    fun isExpired(currentTime: Long): Boolean {
+        val expirationTime = createdAt + TimeUnit.HOURS.toMillis(24)
+        return currentTime > expirationTime
+    }
+
+    fun getMillisLeft(currentTime: Long): Long {
+        val expirationTime = createdAt + TimeUnit.HOURS.toMillis(24)
+        return (expirationTime - currentTime).coerceAtLeast(0L)
+    }
 }

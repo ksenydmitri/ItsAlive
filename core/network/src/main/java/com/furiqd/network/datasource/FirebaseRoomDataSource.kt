@@ -1,6 +1,6 @@
 package com.furiqd.network.datasource
 
-import com.furiqd.network.contract.RemotePairingDataSource
+import com.furiqd.network.contract.RemoteRoomDataSource
 import com.furiqd.network.dto.PairingRoomDto
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Filter
@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-internal class FirebasePairingDataSource @Inject constructor(
+internal class FirebaseRoomDataSource @Inject constructor(
     val firestore: FirebaseFirestore
-) : RemotePairingDataSource {
+) : RemoteRoomDataSource {
 
     private val roomsCollection = firestore.collection("rooms")
 
@@ -42,5 +42,29 @@ internal class FirebasePairingDataSource @Inject constructor(
     override suspend fun getRoomDetails(roomId: String): PairingRoomDto? {
         val snapshot = roomsCollection.document(roomId).get().await()
         return if (snapshot.exists()) snapshot.toObject<PairingRoomDto>() else null
+    }
+
+    override fun observeUserRooms(userId: String): Flow<List<PairingRoomDto>> {
+        return roomsCollection
+            .where(
+                Filter.or(
+                    Filter.equalTo("hostId", userId),
+                    Filter.equalTo("friendId", userId)
+                )
+            )
+            .snapshots()
+            .map { querySnapshot ->
+                querySnapshot.documents.mapNotNull { it.toObject<PairingRoomDto>() }
+            }
+    }
+
+    override suspend fun deleteRoom(roomId: String) {
+        roomsCollection.document(roomId).delete().await()
+    }
+
+    override suspend fun updateRoomChallengeId(roomId: String, challengeId: String) {
+        roomsCollection.document(roomId)
+            .update("challengeId", challengeId)
+            .await()
     }
 }

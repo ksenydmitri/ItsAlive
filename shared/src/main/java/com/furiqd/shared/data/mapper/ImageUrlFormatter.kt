@@ -1,4 +1,4 @@
-package com.furiqd.shared.util
+package com.furiqd.shared.data.mapper
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import javax.inject.Inject

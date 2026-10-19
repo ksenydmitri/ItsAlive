@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +55,7 @@ import com.furiqd.shared.ui.theme.ItsAliveTheme
 import com.furiqd.shared.domain.model.PairingRoom
 import com.furiqd.pairing.R
 import com.furiqd.shared.R.drawable
+import com.furiqd.shared.ui.util.toFormattedTimer
 import java.util.Date
 
 @Composable
@@ -141,9 +143,13 @@ private fun HostRoomCard(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
+                val formattedTime = remember(state.timeLeft) {
+                    state.timeLeft?.toFormattedTimer()
+                }
+
                 Text(
-                    text = if (!state.isExpired && state.formattedTimeLeft != null) {
-                        stringResource(R.string.room_expires_in, state.formattedTimeLeft)
+                    text = if (!state.isExpired && formattedTime != null) {
+                        stringResource(R.string.room_expires_in, formattedTime)
                     } else {
                         stringResource(R.string.room_expired)
                     },
@@ -287,9 +293,11 @@ private fun HostRoomScreenPreview() {
                     id = "preview_id",
                     code = "891204",
                     hostId = "host_1",
-                    createdAt = Date()
+                    createdAt = Date().time,
+                    isStreakActive = true,
+                    streakCount = 1
                 ),
-                formattedTimeLeft = "23:59:59",
+                timeLeft = 2L,
                 isExpired = false,
                 isCopied = false
             ),

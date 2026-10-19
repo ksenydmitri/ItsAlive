@@ -5,9 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.furiqd.shared.domain.model.PairingRoom
-import com.furiqd.pairing.domain.usecase.FormatRoomTimeLeftUseCase
 import com.furiqd.shared.domain.usecase.GetPairingRoomUseCase
-import com.furiqd.pairing.domain.usecase.RoomTimerResult
 import com.furiqd.pairing.presentation.util.ClipboardManagerWrapper
 import com.furiqd.pairing.presentation.util.ShareManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +24,6 @@ import javax.inject.Inject
 class HostRoomViewModel@Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getPairingRoomUseCase: GetPairingRoomUseCase,
-    private val formatRoomTimeLeftUseCase: FormatRoomTimeLeftUseCase,
     private val clipboardManager: ClipboardManagerWrapper,
     private val shareManager: ShareManager
 ) : ViewModel() {
@@ -63,12 +60,12 @@ class HostRoomViewModel@Inject constructor(
                     _uiState.update {
                         HostRoomState.Success(
                             room = room,
-                            formattedTimeLeft = null,
-                            isExpired = room.isExpired,
+                            timeLeft = room.getMillisLeft(System.currentTimeMillis()),
+                            isExpired = room.isExpired(System.currentTimeMillis()),
                             isCopied = false
                         )
                     }
-                    if (!room.isExpired) {
+                    if (!room.isExpired(System.currentTimeMillis())) {
                         startTimer(room)
                     }
                 },
@@ -86,26 +83,11 @@ class HostRoomViewModel@Inject constructor(
                     delay(1000L)
                 }
             }.collect {
-                val timerResult = formatRoomTimeLeftUseCase(room.createdAt)
-
-                when (timerResult) {
-                    is RoomTimerResult.Active -> {
-                        _uiState.update { state ->
-                            (state as? HostRoomState.Success)?.copy(
-                                formattedTimeLeft = timerResult.formattedTime,
-                                isExpired = false
-                            ) ?: state
-                        }
-                    }
-                    RoomTimerResult.Expired -> {
-                        _uiState.update { state ->
-                            (state as? HostRoomState.Success)?.copy(
-                                formattedTimeLeft = null,
-                                isExpired = true
-                            ) ?: state
-                        }
-                        return@collect
-                    }
+                _uiState.update { state ->
+                    (state as? HostRoomState.Success)?.copy(
+                        timeLeft = room.getMillisLeft(System.currentTimeMillis()),
+                        isExpired = false
+                    ) ?: state
                 }
             }
         }

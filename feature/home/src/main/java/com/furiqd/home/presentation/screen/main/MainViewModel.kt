@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.furiqd.home.domain.usecase.DeleteRoomUseCase
 import com.furiqd.home.domain.usecase.FetchRoomsUseCase
-import com.furiqd.home.presentation.screen.main.mapper.toUiModel
+import com.furiqd.home.presentation.mapper.toUiModel
 import com.furiqd.shared.domain.usecase.GetUserUseCase
-import com.furiqd.shared.util.ImageUrlFormatter
+import com.furiqd.shared.data.mapper.ImageUrlFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -28,7 +28,6 @@ import javax.inject.Inject
 internal class MainViewModel @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val fetchRoomsUseCase: FetchRoomsUseCase,
-    private val imageFormatter: ImageUrlFormatter,
     private val deleteRoomUseCase: DeleteRoomUseCase
 ) : ViewModel() {
 
@@ -43,13 +42,14 @@ internal class MainViewModel @Inject constructor(
     }
 
     private fun observeUserDataAndRooms() {
+        Log.e("MainViewModel", "observeUserDataAndRooms")
         getUserUseCase()
             .flatMapLatest { user ->
                 val userId = user?.id.orEmpty()
                 _uiState.update { it.copy(userId = userId) }
 
                 if (userId.isNotBlank()) {
-                    fetchRoomsUseCase(userId)
+                    fetchRoomsUseCase()
                 } else {
                     flowOf(emptyList())
                 }
@@ -58,7 +58,7 @@ internal class MainViewModel @Inject constructor(
                 Log.d("MainViewModel", "Rooms fetched: $pairingRooms")
                 _uiState.update { currentState ->
                     val mappedRooms = pairingRooms.map { room ->
-                        room.toUiModel(isSelected = false, imageFormatter = imageFormatter)
+                        room.toUiModel(isSelected = false)
                     }
 
                     val fullList = mappedRooms + RoomUiModel.Placeholder()

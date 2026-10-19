@@ -51,6 +51,16 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.okhttp)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.kotlinx)
+    implementation(libs.okhttp.logging)
+    kotlin("plugin.serialization")
+
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.codegen)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)

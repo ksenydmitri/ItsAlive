@@ -1,5 +1,6 @@
 package com.furiqd.local.di
 
+import com.furiqd.local.contract.ChallengeLocalDataSource
 import com.furiqd.local.contract.PairingLocalDataSource
 import com.furiqd.local.contract.TokenLocalDataSource
 import com.furiqd.local.contract.UserLocalDataSource

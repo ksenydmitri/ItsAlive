@@ -259,8 +259,7 @@ private fun WaitingForFriendRoomCardPreview() {
                     petName = "Дракончик",
                     petAvatarId = drawable.blue_egg,
                     expiringTime = System.currentTimeMillis() - (15L * 60L * 10000L),
-                    userAvatarUrl = null,
-                    friendAvatarUrl = null
+                    userAvatarUrl = null
                 ),
                 onClick = {},
                 modifier = Modifier.fillMaxSize(),

@@ -1,5 +1,6 @@
 package com.furiqd.home.presentation.screen.main
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.pager.HorizontalPager
@@ -54,6 +55,7 @@ fun MainScreen(
         ) { page ->
             when (val room = state.rooms[page]) {
                 is RoomUiModel.Active -> {
+                    Log.d("MainScreen", "Active room: $room")
                     ActiveRoomCard(
                         room = room,
                         onCameraClick = {onEvent(MainEvent.CameraClicked)},

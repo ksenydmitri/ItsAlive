@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.furiqd.shared.domain.usecase.GetUserUseCase
 import com.furiqd.home.domain.usecase.LogoutUseCase
 import com.furiqd.shared.domain.usecase.UpdateAvatarUseCase
-import com.furiqd.shared.util.ImageUrlFormatter
+import com.furiqd.shared.data.mapper.ImageUrlFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

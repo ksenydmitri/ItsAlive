@@ -11,5 +11,8 @@ data class PairingRoomDto(
     val friendId: String? = null,
     val pet: JointPetDto = JointPetDto(),
     val createdAt: Date = Date(),
-    val status: String = "WAITING"
+    val status: String = "WAITING",
+    val challengeId: String? = null,
+    val isStreakActive: Boolean = false,
+    val streakCount: Int = 0
 )
