@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.Button
@@ -37,11 +38,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.furiqd.home.R
 import com.furiqd.home.presentation.screen.main.RoomUiModel
+import com.furiqd.shared.ui.util.rememberCountdownTimer
 import com.furiqd.shared.ui.util.toFormattedTimer
 
 private sealed interface ChallengeDisplayState {
     data object CompositeReady : ChallengeDisplayState
-    data class ActiveUserTurn(val timeLeft: String) : ChallengeDisplayState
+    data class ActiveUserTurn(val timeLeft: Long?) : ChallengeDisplayState
     data object ActiveWaitingFriend : ChallengeDisplayState
     data object InactiveWaitingHour : ChallengeDisplayState
 }
@@ -53,17 +55,14 @@ fun ActiveRoomCard(
     onInciteFriendClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val displayState = remember(room) {
-        val challenge = room.challengeUiModel
+    val challenge = room.challengeUiModel
+
+    val displayState = remember(challenge, room) {
         when {
-            room.isActiveHour && challenge != null -> {
-                if (!challenge.isUserDone) {
-                    ChallengeDisplayState.ActiveUserTurn(
-                        challenge.timeLeft?.toFormattedTimer() ?: "")
-                } else {
-                    ChallengeDisplayState.ActiveWaitingFriend
-                }
-            }
+            challenge == null -> ChallengeDisplayState.InactiveWaitingHour
+            challenge.isUserDone  -> ChallengeDisplayState.CompositeReady
+            !challenge.isUserDone -> ChallengeDisplayState.ActiveUserTurn(timeLeft = challenge.expiresAt)
+            !challenge.isFriendDone -> ChallengeDisplayState.ActiveWaitingFriend
             else -> ChallengeDisplayState.InactiveWaitingHour
         }
     }
@@ -77,6 +76,7 @@ fun ActiveRoomCard(
             StreakHeader(room = room)
 
             Spacer(modifier = Modifier.height(16.dp))
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,7 +99,11 @@ fun ActiveRoomCard(
 
                         is ChallengeDisplayState.ActiveUserTurn -> {
                             ActiveChallengeContent(
-                                timeLeft = displayState.timeLeft,
+                                expiringTime = displayState.timeLeft ?: 0L,
+                                userPrompt = challenge?.userTask.orEmpty(),
+                                friendPrompt = challenge?.friendTask.orEmpty(),
+                                isUserCompleted = challenge?.isUserDone ?: false,
+                                isFriendCompleted = challenge?.isFriendDone ?: false,
                                 onCameraClick = onCameraClick
                             )
                         }
@@ -119,7 +123,6 @@ fun ActiveRoomCard(
         }
     }
 }
-
 @Composable
 private fun StreakHeader(room: RoomUiModel.Active) {
     Row(
@@ -160,35 +163,127 @@ private fun StreakHeader(room: RoomUiModel.Active) {
 
 @Composable
 private fun ActiveChallengeContent(
-    timeLeft: String,
-    onCameraClick: () -> Unit
+    expiringTime: Long,
+    userPrompt: String,
+    friendPrompt: String,
+    isUserCompleted: Boolean,
+    isFriendCompleted: Boolean,
+    onCameraClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = stringResource(R.string.game_active_alert),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(4.dp))
+        val formattedTime = rememberCountdownTimer(targetTimeMillis = expiringTime)
+
         Text(
-            text = "$timeLeft ${stringResource(R.string.game_time_left_suffix)}",
-            style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black),
-            color = MaterialTheme.colorScheme.onSurface
+            text = "$formattedTime ${stringResource(R.string.game_time_left_suffix)}",
+            style = MaterialTheme.typography.displayMedium
         )
-        Spacer(modifier = Modifier.height(32.dp))
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TaskItemCard(
+                title = stringResource(R.string.task_label_user),
+                prompt = userPrompt,
+                isCompleted = isUserCompleted
+            )
+
+            TaskItemCard(
+                title = stringResource(R.string.task_label_friend),
+                prompt = friendPrompt,
+                isCompleted = isFriendCompleted
+            )
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
         Button(
             onClick = onCameraClick,
+            enabled = !isUserCompleted,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         ) {
-            Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
+            if (isUserCompleted) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.task_status_done),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.action_capture_element),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskItemCard(
+    title: String,
+    prompt: String,
+    isCompleted: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.action_capture_element),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.outline
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = prompt,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Статус выполнения
+        if (isCompleted) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
         }
     }

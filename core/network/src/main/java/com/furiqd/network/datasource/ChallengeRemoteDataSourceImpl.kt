@@ -15,7 +15,7 @@ class ChallengeRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun getChallengeById(challengeId: String): DailyChallengeDto? {
         return runCatching {
-            backendlessApi.getChallengeById(challengeId)
+            backendlessApi.getChallengeByIdWithTask(challengeId)
         }.getOrNull()
     }
 

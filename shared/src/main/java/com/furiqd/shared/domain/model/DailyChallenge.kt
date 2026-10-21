@@ -13,9 +13,4 @@ data class DailyChallenge(
 ) {
     val isUserDone: Boolean get() = userPhotoUrl != null
     val isFriendDone: Boolean get() = friendPhotoUrl != null
-
-    fun getMillisLeft(currentTime: Long = System.currentTimeMillis()): Long {
-        if (expiresAt == null) return 0L
-        return (expiresAt - currentTime).coerceAtLeast(0L)
-    }
 }

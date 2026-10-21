@@ -20,6 +20,12 @@ interface BackendlessChallengeApi {
         @Path("objectId") challengeId: String
     ): DailyChallengeDto
 
+    @GET("data/daily_challenges/{objectId}")
+    suspend fun getChallengeByIdWithTask(
+        @Path("objectId") challengeId: String,
+        @Query("loadRelations") loadRelations: String = "taskId"
+    ): DailyChallengeDto
+
     @POST("data/daily_challenges")
     @Headers("Content-Type: application/json")
     suspend fun createChallenge(

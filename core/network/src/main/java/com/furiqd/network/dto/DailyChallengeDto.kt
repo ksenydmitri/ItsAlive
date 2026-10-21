@@ -8,8 +8,8 @@ data class DailyChallengeDto(
     @SerialName("objectId")val id: String = "",
     @SerialName("isActiveHour")val isActiveHour: Boolean = false,
     @SerialName("expiresAt")val expiresAt: Long? = null,
-    @SerialName("task")val task: ChallengeTaskDto? = null,
+    @SerialName("taskId")val task: ChallengeTaskDto? = null,
     @SerialName("userPhotoUrl")val userPhotoUrl: String? = null,
     @SerialName("friendPhotoUrl")val friendPhotoUrl: String? = null,
-    @SerialName("compositeImageUrl")val compositeImageUrl: String? = null
+    @SerialName("compositePhotoUrl")val compositeImageUrl: String? = null
 )
