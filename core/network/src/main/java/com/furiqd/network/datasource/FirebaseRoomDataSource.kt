@@ -10,6 +10,7 @@ import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 
 internal class FirebaseRoomDataSource @Inject constructor(
@@ -17,6 +18,7 @@ internal class FirebaseRoomDataSource @Inject constructor(
 ) : RemoteRoomDataSource {
 
     private val roomsCollection = firestore.collection("rooms")
+    private val usersCollection = firestore.collection("users")
 
     override fun observeRoom(roomId: String): Flow<PairingRoomDto?> {
         return roomsCollection.document(roomId)
@@ -66,5 +68,55 @@ internal class FirebaseRoomDataSource @Inject constructor(
         roomsCollection.document(roomId)
             .update("challengeId", challengeId)
             .await()
+    }
+
+    override suspend fun createRoom(newRoomDto: PairingRoomDto): String {
+        val documentRef = roomsCollection.add(newRoomDto).await()
+        val userRef = usersCollection.document(newRoomDto.hostId)
+        userRef.update("roomIds", FieldValue.arrayUnion(documentRef.id)).await()
+        return documentRef.id
+    }
+
+    override suspend fun joinRoom(inviteCode: String, friendUserId: String): String {
+        val querySnapshot = roomsCollection
+            .whereEqualTo("code", inviteCode)
+            .whereEqualTo("status", "WAITING")
+            .limit(1)
+            .get()
+            .await()
+
+        if (querySnapshot.isEmpty) {
+            throw NoSuchElementException("Error: room not found or already occupied")
+        }
+
+        val document = querySnapshot.documents.first()
+        val roomRef = document.reference
+        val userRef = usersCollection.document(friendUserId)
+
+        return firestore.runTransaction<String> { transaction ->
+            val freshSnapshot = transaction.get(roomRef)
+            val currentStatus = freshSnapshot.getString("status")
+
+            if (currentStatus != "WAITING") {
+                throw IllegalStateException("Room is no longer waiting")
+            }
+
+            transaction.update(roomRef, "friendId", friendUserId)
+            transaction.update(roomRef, "status", "ACTIVE")
+            transaction.update(roomRef, "pet.stage", "BABY")
+            transaction.update(roomRef, "pet.hatchedAt", Date())
+            transaction.update(userRef, "roomIds", FieldValue.arrayUnion(document.id))
+            document.id
+        }.await()
+    }
+
+    override suspend fun isCodeExisting(code: String): Boolean {
+        val querySnapshot = roomsCollection
+            .whereEqualTo("code", code)
+            .whereIn("status", listOf("WAITING", "ACTIVE"))
+            .get()
+            .await()
+
+        return !querySnapshot.isEmpty
     }
 }

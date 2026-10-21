@@ -1,7 +1,7 @@
 package com.furiqd.network.dto
 
 import com.google.firebase.firestore.DocumentId
-import java.util.Date
+import com.google.firebase.firestore.PropertyName
 
 data class PairingRoomDto(
     @DocumentId
@@ -10,9 +10,10 @@ data class PairingRoomDto(
     val hostId: String = "",
     val friendId: String? = null,
     val pet: JointPetDto = JointPetDto(),
-    val createdAt: Date = Date(),
+    val createdAt: Long = System.currentTimeMillis(),
     val status: String = "WAITING",
     val challengeId: String? = null,
+    @get:PropertyName("streakActive")
     val isStreakActive: Boolean = false,
     val streakCount: Int = 0
 )

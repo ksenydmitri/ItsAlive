@@ -1,5 +1,6 @@
 package com.furiqd.network.di
 
+import com.furiqd.network.BuildConfig
 import com.furiqd.network.datasource.BackendlessChallengeApi
 import dagger.Module
 import dagger.Provides
@@ -15,11 +16,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object BackendlessNetworkModule {
-
-    private const val BACKENDLESS_APP_ID = "YOUR_APP_ID_HERE"
-    private const val BACKENDLESS_REST_KEY = "YOUR_REST_KEY_HERE"
+    private const val BACKENDLESS_APP_ID = BuildConfig.BACKENDLESS_APP_ID
+    private const val BACKENDLESS_REST_KEY = BuildConfig.BACKENDLESS_REST_KEY
     private const val BASE_URL = "https://api.backendless.com/$BACKENDLESS_APP_ID/$BACKENDLESS_REST_KEY/"
-
     @Provides
     @Singleton
     fun provideJson(): Json {

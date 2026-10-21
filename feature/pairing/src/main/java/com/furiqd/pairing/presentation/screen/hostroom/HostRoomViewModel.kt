@@ -57,15 +57,16 @@ class HostRoomViewModel@Inject constructor(
 
             getPairingRoomUseCase(roomId).fold(
                 onSuccess = { room ->
+                    val isExpired = room.isExpired(System.currentTimeMillis())
                     _uiState.update {
                         HostRoomState.Success(
                             room = room,
                             timeLeft = room.getMillisLeft(System.currentTimeMillis()),
-                            isExpired = room.isExpired(System.currentTimeMillis()),
+                            isExpired = isExpired,
                             isCopied = false
                         )
                     }
-                    if (!room.isExpired(System.currentTimeMillis())) {
+                    if (!isExpired) {
                         startTimer(room)
                     }
                 },
@@ -83,11 +84,17 @@ class HostRoomViewModel@Inject constructor(
                     delay(1000L)
                 }
             }.collect {
+                val currentTime = System.currentTimeMillis()
+                val isCurrentlyExpired = room.isExpired(currentTime)
                 _uiState.update { state ->
                     (state as? HostRoomState.Success)?.copy(
-                        timeLeft = room.getMillisLeft(System.currentTimeMillis()),
-                        isExpired = false
+                        timeLeft = room.getMillisLeft(currentTime),
+                        isExpired = isCurrentlyExpired
                     ) ?: state
+                }
+                if (isCurrentlyExpired) {
+                    // Останавливаем таймер, если время вышло
+                    return@collect
                 }
             }
         }

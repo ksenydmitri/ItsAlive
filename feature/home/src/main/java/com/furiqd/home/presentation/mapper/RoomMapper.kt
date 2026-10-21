@@ -14,7 +14,7 @@ fun HomeRoomDetails.toUiModel(isSelected: Boolean = false): RoomUiModel {
                 inviteCode = room.code,
                 petName = room.pet.name,
                 petAvatarId = PetEggConfig.getDrawableByType(room.pet.petEggType),
-                expiringTime = room.getMillisLeft(System.currentTimeMillis()),
+                expiringTime = room.createdAt, // Передаем время создания, а не остаток
                 userAvatarUrl = currentUser.avatarId
             )
         }

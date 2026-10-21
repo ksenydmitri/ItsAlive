@@ -7,7 +7,7 @@ import com.furiqd.shared.domain.model.ChallengeTask
 import com.furiqd.shared.domain.model.DailyChallenge
 import com.furiqd.shared.domain.model.PairingRoom
 import com.furiqd.shared.domain.model.RoomStatus
-import java.util.Date
+import com.google.firebase.Timestamp
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,7 +31,7 @@ class RoomMapper @Inject constructor(
             hostId = dto.hostId,
             friendId = dto.friendId,
             pet = dto.pet.toDomain(),
-            createdAt = dto.createdAt.time,
+            createdAt = dto.createdAt,
             status = domainStatus,
             challenge = challengeDto?.toDomain(),
             isStreakActive = dto.isStreakActive,
@@ -52,7 +52,7 @@ class RoomMapper @Inject constructor(
             hostId = domain.hostId,
             friendId = domain.friendId,
             pet = domain.pet.toDto(),
-            createdAt = Date(domain.createdAt),
+            createdAt = domain.createdAt,
             status = stringStatus,
             challengeId = domain.challenge?.id
         )

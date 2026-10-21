@@ -36,7 +36,7 @@ class UserDataMapper @Inject constructor(
         return UserDto(
             id = user.id,
             name = user.name,
-            avatarId = user.avatarId,
+            avatarId = imageUrlFormatter.format(user.avatarId),
             isOnboardingCompleted = user.isOnboardingCompleted,
             roomIds = user.roomIds,
             email = user.email,

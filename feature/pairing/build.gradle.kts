@@ -29,7 +29,7 @@ android {
 dependencies {
     implementation(project(":shared"))
     implementation(project(":core:local"))
-
+    implementation(project(":core:network"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.ktx)

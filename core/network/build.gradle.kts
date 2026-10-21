@@ -30,6 +30,12 @@ android {
         }
         val workerEndpoint = localProperties["WORKER_ENDPOINT"] as? String ?: "https://r2-worker.ksenydmitri.workers.dev"
         buildConfigField("String", "WORKER_ENDPOINT", "\"$workerEndpoint\"")
+
+        val backendlessAppId = localProperties["BACKENDLESS_APP_ID"] as? String
+        buildConfigField("String", "BACKENDLESS_APP_ID", "\"$backendlessAppId\"")
+
+        val backendlessRestKey = localProperties["BACKENDLESS_REST_KEY"] as? String
+        buildConfigField("String", "BACKENDLESS_REST_KEY", "\"$backendlessRestKey\"")
     }
 
     compileOptions {
