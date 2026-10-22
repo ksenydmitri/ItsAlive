@@ -2,6 +2,7 @@ package com.furiqd.network.datasource
 
 import com.furiqd.network.dto.ChallengeTaskDto
 import com.furiqd.network.dto.DailyChallengeDto
+import com.furiqd.network.dto.FileUploadResponseDto
 import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -32,7 +33,7 @@ interface BackendlessChallengeApi {
         @Body challengeDto: DailyChallengeDto
     ): DailyChallengeDto
 
-    @PATCH("data/daily_challenges/{objectId}")
+    @PUT("data/daily_challenges/{objectId}")
     @Headers("Content-Type: application/json")
     suspend fun updateChallengePhoto(
         @Path("objectId") challengeId: String,
@@ -45,11 +46,11 @@ interface BackendlessChallengeApi {
     ): List<DailyChallengeDto>
 
     @Multipart
-    @PUT("files/challenges/{fileName}?overwrite=true")
+    @POST("files/challenges/{fileName}?overwrite=true")
     suspend fun uploadChallengeFile(
         @Path("fileName") fileName: String,
         @Part file: MultipartBody.Part
-    ): String
+    ): FileUploadResponseDto
 
     @GET("data/challenge_tasks?pageSize=100")
     suspend fun getChallengeTasksList(): List<ChallengeTaskDto>

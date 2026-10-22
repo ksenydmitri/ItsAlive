@@ -11,12 +11,12 @@ internal interface HomeRepository {
     suspend fun getChallenge(challengeId: String): Result<DailyChallenge>
 
     suspend fun submitChallengePhoto(
-        challengeId: String,
-        userId: String,
-        isHost: Boolean,
-        photoBytes: ByteArray
+        roomId: String,
+        photoPath: String,
+        userId: String
     ): Result<Unit>
 
     suspend fun checkActiveHour(challengeId: String): Boolean
     suspend fun getRoomWithChallenge(roomId: String, userId: String): Result<PairingRoom>
+    suspend fun inciteFriend(userId: String): Result<Unit>
 }

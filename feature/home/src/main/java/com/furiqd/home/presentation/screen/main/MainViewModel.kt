@@ -1,13 +1,17 @@
 package com.furiqd.home.presentation.screen.main
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.furiqd.home.domain.usecase.DeleteRoomUseCase
 import com.furiqd.home.domain.usecase.FetchRoomsUseCase
+import com.furiqd.home.domain.usecase.InciteFriendUseCase
+import com.furiqd.home.domain.usecase.SubmitChallengePhotoUseCase
 import com.furiqd.home.presentation.mapper.toUiModel
 import com.furiqd.shared.domain.usecase.GetUserUseCase
 import com.furiqd.shared.data.mapper.ImageUrlFormatter
+import com.furiqd.shared.domain.repository.ImageStreamProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -28,7 +32,9 @@ import javax.inject.Inject
 internal class MainViewModel @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val fetchRoomsUseCase: FetchRoomsUseCase,
-    private val deleteRoomUseCase: DeleteRoomUseCase
+    private val deleteRoomUseCase: DeleteRoomUseCase,
+    private val submitChallengePhotoUseCase: SubmitChallengePhotoUseCase,
+    private val inciteFriendUseCase: InciteFriendUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainState(isLoading = true))
@@ -102,8 +108,7 @@ internal class MainViewModel @Inject constructor(
             }
 
             is MainEvent.InciteFriendClicked -> {
-                // TODO: Вызвать UseCase для пинга друга
-                sendEffect(MainEffect.ShowToast("Friend nudged!"))
+               inciteFriend(uiState.value.selectedRoom?.id ?: return)
             }
 
             is MainEvent.RoomChangedToNextInPager -> {
@@ -114,6 +119,10 @@ internal class MainViewModel @Inject constructor(
             is MainEvent.RoomChangedToPreviousInPager -> {
                 val targetRoomId = _uiState.value.previousRoom?.id ?: return
                 changeSelectedRoom(targetRoomId)
+            }
+
+            is MainEvent.ChallengePhotoCaptured -> {
+                uploadChallengePhoto(event.uri)
             }
         }
     }
@@ -139,6 +148,28 @@ internal class MainViewModel @Inject constructor(
     private fun sendEffect(effect: MainEffect) {
         viewModelScope.launch {
             _effect.send(effect)
+        }
+    }
+
+    fun uploadChallengePhoto(uri: Uri) {
+        viewModelScope.launch {
+            submitChallengePhotoUseCase(
+                roomId = uiState.value.selectedRoom?.id ?: return@launch,
+                photoPath = uri.toString(),
+                userId = uiState.value.userId,
+                )
+        }
+    }
+
+    private fun inciteFriend(roomId: String) {
+        viewModelScope.launch {
+            inciteFriendUseCase(roomId)
+                .onSuccess {
+                    sendEffect(MainEffect.ShowToast("Уведомление другу отправлено!"))
+                }
+                .onFailure {
+                    sendEffect(MainEffect.ShowToast("Не удалось отправить пшик"))
+                }
         }
     }
 }

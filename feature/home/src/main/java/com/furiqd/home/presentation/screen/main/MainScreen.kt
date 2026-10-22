@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.furiqd.home.presentation.element.ActiveRoomCard
 import com.furiqd.home.presentation.element.CreateRoomPlaceholderCard
 import com.furiqd.home.presentation.element.WaitingForFriendRoomCard
+import com.furiqd.shared.ui.elements.rememberCameraLauncher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +31,11 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState(pageCount = { state.rooms.size })
-
+    val launchCamera = rememberCameraLauncher(
+        onPhotoCaptured = { uri ->
+            onEvent(MainEvent.ChallengePhotoCaptured(uri))
+        }
+    )
     Column(modifier){
         Row(
             modifier = modifier
@@ -58,7 +64,7 @@ fun MainScreen(
                     Log.d("MainScreen", "Active room: $room")
                     ActiveRoomCard(
                         room = room,
-                        onCameraClick = {onEvent(MainEvent.CameraClicked)},
+                        onCameraClick = launchCamera,
                         modifier = modifier,
                         onInciteFriendClick = { onEvent(MainEvent.InciteFriendClicked) }
                     )

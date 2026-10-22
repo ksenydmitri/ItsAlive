@@ -1,5 +1,6 @@
 package com.furiqd.network.datasource
 
+import android.util.Log
 import com.furiqd.network.contract.RemoteChallengeDataSource
 import com.furiqd.network.dto.ChallengeTaskDto
 import com.furiqd.network.dto.DailyChallengeDto
@@ -26,14 +27,14 @@ class ChallengeRemoteDataSourceImpl @Inject constructor(
     override suspend fun uploadUserPhoto(
         challengeId: String,
         userId: String,
-        photoBytes: ByteArray
+        photoBytes: ByteArray,
+        mimeType: String
     ): String {
         val fileName = "challenge_${challengeId}_${userId}.jpg"
-        val requestFile = photoBytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
-        val multipartBody = MultipartBody.Part.createFormData("file", fileName, requestFile)
+        val requestBody = photoBytes.toRequestBody(mimeType.toMediaTypeOrNull())
+        val multipartBody = MultipartBody.Part.createFormData("file", fileName, requestBody)
 
-        val response = backendlessApi.uploadChallengeFile(fileName, multipartBody)
-        return response
+        return backendlessApi.uploadChallengeFile(fileName, multipartBody).fileUrl
     }
 
     override suspend fun updatePhotoUrl(
@@ -44,6 +45,7 @@ class ChallengeRemoteDataSourceImpl @Inject constructor(
         val fieldName = if (isHost) "userPhotoUrl" else "friendPhotoUrl"
         val body = mapOf(fieldName to photoPath)
 
+        Log.e("ChallengeRemoteDataSource", "updatePhotoUrl: $body")
         backendlessApi.updateChallengePhoto(challengeId, body)
     }
 

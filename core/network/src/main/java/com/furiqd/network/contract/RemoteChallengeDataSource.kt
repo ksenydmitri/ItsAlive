@@ -10,7 +10,8 @@ interface RemoteChallengeDataSource {
     suspend fun uploadUserPhoto(
         challengeId: String,
         userId: String,
-        photoBytes: ByteArray
+        photoBytes: ByteArray,
+        mimeType: String
     ): String
     suspend fun updatePhotoUrl(
         challengeId: String,
