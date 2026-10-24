@@ -14,6 +14,7 @@ data class PairingRoomDto(
     val status: String = "WAITING",
     val challengeId: String? = null,
     @get:PropertyName("streakActive")
-    val isStreakActive: Boolean = false,
+    @set:PropertyName("streakActive")
+    var isStreakActive: Boolean = false,
     val streakCount: Int = 0
 )

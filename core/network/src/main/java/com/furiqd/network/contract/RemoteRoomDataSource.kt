@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface RemoteRoomDataSource {
     fun observeRoom(roomId: String): Flow<PairingRoomDto?>
-    suspend fun sendNudge(roomId: String, senderUserId: String)
     suspend fun getRoomDetails(roomId: String): PairingRoomDto?
     fun observeUserRooms(userId: String): Flow<List<PairingRoomDto>>
     suspend fun deleteRoom(roomId: String)

@@ -32,6 +32,11 @@
     <string name="waiting_for_friend_subtitle">«%1$s» needs the second parent</string>
     <string name="avatar_plus_symbol">+</string>
 
+    <string name="friend_incited_success">Friend incited!</string>
+    <string name="friend_incited_error">Could not incite friend</string>
+
+    <string name="error_get_rooms">Rooms could not be fetched</string>
+
     <string name="profile_title">Profile</string>
     <string name="profile_no_name">No Name</string>
     <string name="profile_no_email">No Email</string>

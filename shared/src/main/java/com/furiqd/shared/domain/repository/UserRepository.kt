@@ -15,4 +15,5 @@ interface UserRepository {
     suspend fun checkIsOnboardingCompleted(): Boolean
     suspend fun updateUser(user: User): Result<Unit>
     suspend fun getUserById(userId: String): User?
+    suspend fun updateFcmToken(userId: String): Result<Unit>
 }

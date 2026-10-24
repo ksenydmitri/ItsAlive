@@ -4,14 +4,14 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.furiqd.home.R
 import com.furiqd.home.domain.usecase.DeleteRoomUseCase
 import com.furiqd.home.domain.usecase.FetchRoomsUseCase
 import com.furiqd.home.domain.usecase.InciteFriendUseCase
 import com.furiqd.home.domain.usecase.SubmitChallengePhotoUseCase
+import com.furiqd.home.domain.usecase.SyncFcmTokenUseCase
 import com.furiqd.home.presentation.mapper.toUiModel
 import com.furiqd.shared.domain.usecase.GetUserUseCase
-import com.furiqd.shared.data.mapper.ImageUrlFormatter
-import com.furiqd.shared.domain.repository.ImageStreamProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -34,6 +34,7 @@ internal class MainViewModel @Inject constructor(
     private val fetchRoomsUseCase: FetchRoomsUseCase,
     private val deleteRoomUseCase: DeleteRoomUseCase,
     private val submitChallengePhotoUseCase: SubmitChallengePhotoUseCase,
+    private val syncFcmTokenUseCase: SyncFcmTokenUseCase,
     private val inciteFriendUseCase: InciteFriendUseCase
 ) : ViewModel() {
 
@@ -45,42 +46,7 @@ internal class MainViewModel @Inject constructor(
 
     init {
         observeUserDataAndRooms()
-    }
-
-    private fun observeUserDataAndRooms() {
-        Log.e("MainViewModel", "observeUserDataAndRooms")
-        getUserUseCase()
-            .flatMapLatest { user ->
-                val userId = user?.id.orEmpty()
-                _uiState.update { it.copy(userId = userId) }
-
-                if (userId.isNotBlank()) {
-                    fetchRoomsUseCase()
-                } else {
-                    flowOf(emptyList())
-                }
-            }
-            .onEach { pairingRooms ->
-                Log.d("MainViewModel", "Rooms fetched: $pairingRooms")
-                _uiState.update { currentState ->
-                    val mappedRooms = pairingRooms.map { room ->
-                        room.toUiModel(isSelected = false)
-                    }
-
-                    val fullList = mappedRooms + RoomUiModel.Placeholder()
-                    val updatedList = selectRoomById(fullList, currentState.selectedRoom?.id)
-
-                    currentState.copy(
-                        rooms = updatedList,
-                        isLoading = false
-                    )
-                }
-            }
-            .catch { throwable ->
-                Log.e("MainViewModel", "Error fetching data", throwable)
-                _uiState.update { it.copy(isLoading = false) }
-            }
-            .launchIn(viewModelScope)
+        syncFcmToken()
     }
 
     fun handleEvent(event: MainEvent) {
@@ -102,13 +68,11 @@ internal class MainViewModel @Inject constructor(
             }
 
             is MainEvent.DeleteRoomClicked -> {
-                viewModelScope.launch {
-                    deleteRoomUseCase.invoke(event.roomId)
-                }
+                deleteRoom(event.roomId)
             }
 
             is MainEvent.InciteFriendClicked -> {
-               inciteFriend(uiState.value.selectedRoom?.id ?: return)
+                inciteFriend()
             }
 
             is MainEvent.RoomChangedToNextInPager -> {
@@ -125,6 +89,40 @@ internal class MainViewModel @Inject constructor(
                 uploadChallengePhoto(event.uri)
             }
         }
+    }
+
+    private fun observeUserDataAndRooms() {
+        getUserUseCase()
+            .flatMapLatest { user ->
+                val userId = user?.id.orEmpty()
+                _uiState.update { it.copy(userId = userId) }
+
+                if (userId.isNotBlank()) {
+                    fetchRoomsUseCase()
+                } else {
+                    flowOf(emptyList())
+                }
+            }
+            .onEach { pairingRooms ->
+                _uiState.update { currentState ->
+                    val mappedRooms = pairingRooms.map { room ->
+                        room.toUiModel(isSelected = false)
+                    }
+
+                    val fullList = mappedRooms + RoomUiModel.Placeholder()
+                    val updatedList = selectRoomById(fullList, currentState.selectedRoom?.id)
+
+                    currentState.copy(
+                        rooms = updatedList,
+                        isLoading = false
+                    )
+                }
+            }
+            .catch {
+                sendEffect(MainEffect.ShowToast(R.string.error_get_rooms))
+                _uiState.update { it.copy(isLoading = false) }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun changeSelectedRoom(roomId: String) {
@@ -145,31 +143,49 @@ internal class MainViewModel @Inject constructor(
         }
     }
 
+    private fun uploadChallengePhoto(uri: Uri) {
+        viewModelScope.launch {
+            val roomId = uiState.value.selectedRoom?.id ?: return@launch
+            submitChallengePhotoUseCase(
+                roomId = roomId,
+                photoPath = uri.toString(),
+                userId = uiState.value.userId
+            )
+        }
+    }
+
+    private fun deleteRoom(roomId: String) {
+        viewModelScope.launch {
+            deleteRoomUseCase(roomId)
+        }
+    }
+
+    private fun inciteFriend() {
+        viewModelScope.launch {
+            Log.d("MainViewModel", "Incite friend clicked")
+            inciteFriendUseCase(
+                uiState.value.selectedRoom?.id ?:
+            return@launch, uiState.value.userId)
+                .onSuccess {
+                    Log.d("MainViewModel", "Incite friend success")
+                    sendEffect(MainEffect.ShowToast(R.string.friend_incited_success))
+                }
+                .onFailure {
+                    Log.d("MainViewModel", "Incite friend error")
+                    sendEffect(MainEffect.ShowToast(R.string.friend_incited_error))
+                }
+        }
+    }
+
     private fun sendEffect(effect: MainEffect) {
         viewModelScope.launch {
             _effect.send(effect)
         }
     }
 
-    fun uploadChallengePhoto(uri: Uri) {
+    private fun syncFcmToken() {
         viewModelScope.launch {
-            submitChallengePhotoUseCase(
-                roomId = uiState.value.selectedRoom?.id ?: return@launch,
-                photoPath = uri.toString(),
-                userId = uiState.value.userId,
-                )
-        }
-    }
-
-    private fun inciteFriend(roomId: String) {
-        viewModelScope.launch {
-            inciteFriendUseCase(roomId)
-                .onSuccess {
-                    sendEffect(MainEffect.ShowToast("Уведомление другу отправлено!"))
-                }
-                .onFailure {
-                    sendEffect(MainEffect.ShowToast("Не удалось отправить пшик"))
-                }
+            syncFcmTokenUseCase(uiState.value.userId)
         }
     }
 }

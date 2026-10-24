@@ -10,6 +10,7 @@ import com.furiqd.network.dto.DailyChallengeDto
 import com.furiqd.shared.data.mapper.RoomMapper
 import com.furiqd.shared.domain.model.DailyChallenge
 import com.furiqd.shared.domain.model.PairingRoom
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -121,7 +122,11 @@ internal class HomeRepositoryImpl@Inject constructor(
         return challenge?.isActiveHour ?: false
     }
 
-    override suspend fun inciteFriend(userId: String): Result<Unit> {
-        TODO("Not yet implemented")
+    override suspend fun inciteFriend(roomId: String,
+                                      senderId: String,
+                                      recipientId: String): Result<Unit> = runCatching {
+        remoteChallengeDataSource.inciteFriend(roomId, senderId, recipientId)
+        }.onFailure { exception ->
+        Log.e("HomeRepositoryImpl", "Failed to invite friend", exception)
     }
 }

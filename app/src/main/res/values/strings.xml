@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ItsAlive</string>
+    <string name="friend_invite_channel_id">friend_invite_channel_id</string>
+    <string name="friend_invite_channel_name">friend_invite_channel_name</string>
 </resources>

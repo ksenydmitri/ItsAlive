@@ -30,15 +30,6 @@ class RoomRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun nudgeFriend(
-        roomId: String,
-        senderUserId: String
-    ): Result<Unit> {
-        return runCatching {
-            remoteDataSource.sendNudge(roomId, senderUserId)
-        }
-    }
-
     override suspend fun fetchRoomDetails(roomId: String): Result<PairingRoom> {
         return runCatching {
             val remoteRoomDto = remoteDataSource.getRoomDetails(roomId)

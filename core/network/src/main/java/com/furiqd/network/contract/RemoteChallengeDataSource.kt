@@ -21,4 +21,9 @@ interface RemoteChallengeDataSource {
 
     suspend fun createChallenge(challengeDto: DailyChallengeDto): DailyChallengeDto
     suspend fun getRandomTask(): ChallengeTaskDto?
+    suspend fun inciteFriend(
+        roomId: String,
+        senderId: String,
+        recipientId: String
+    )
 }

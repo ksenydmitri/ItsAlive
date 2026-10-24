@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.kotlinx)
     implementation(libs.okhttp.logging)
+    implementation(libs.firebase.messaging)
     kotlin("plugin.serialization")
 
     implementation(libs.kotlinx.serialization.json)

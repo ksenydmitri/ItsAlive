@@ -6,7 +6,6 @@ import androidx.compose.runtime.Immutable
 data class MainState(
     val isLoading: Boolean = false,
     val rooms: List<RoomUiModel> = emptyList(),
-    val errorMessage: String? = null,
     val userId: String = ""
 ) {
     val selectedRoom: RoomUiModel?

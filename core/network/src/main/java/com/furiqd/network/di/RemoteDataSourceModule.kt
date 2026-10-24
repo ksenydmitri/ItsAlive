@@ -11,10 +11,12 @@ import com.furiqd.network.datasource.FirebaseRoomDataSource
 import com.furiqd.network.datasource.GoogleStorageDataSource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
@@ -51,9 +53,10 @@ object RemoteDataSourceModule {
     @Singleton
     fun provideRemoteAuthDataSource(
         auth: FirebaseAuth,
-        firestore: FirebaseFirestore
+        firestore: FirebaseFirestore,
+        firebaseMessaging: FirebaseMessaging
     ): RemoteAuthDataSource {
-        return FirebaseAuthDataSource(auth, firestore)
+        return FirebaseAuthDataSource(auth, firestore, firebaseMessaging)
     }
 
     @Provides
@@ -78,6 +81,8 @@ object RemoteDataSourceModule {
     fun provideRemoteChallengeDataSource(
         backendlessApi: BackendlessChallengeApi
     ): RemoteChallengeDataSource {
-        return ChallengeRemoteDataSourceImpl(backendlessApi)
+        return ChallengeRemoteDataSourceImpl(backendlessApi,
+            OkHttpClient(),
+            Json)
     }
 }
