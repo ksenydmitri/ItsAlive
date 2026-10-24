@@ -82,8 +82,19 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getUserById(userId: String): User? {
+        val localUsers = localDataSource.getUsersByIds(listOf(userId))
+        val cachedUser = localUsers.firstOrNull()?.let { userMapper.toDomain(it) }
+
+        if (cachedUser != null) {
+            return cachedUser
+        }
+
         val remoteUserDto = remoteDataSource.getUserProfile(userId) ?: return null
         val domainUser = userMapper.toDomain(remoteUserDto)
+        val localEntity = userMapper.toLocal(domainUser)
+
+        localDataSource.saveUser(localEntity)
+
         return domainUser
     }
 

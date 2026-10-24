@@ -5,6 +5,7 @@ import com.furiqd.home.data.mapper.toDomain
 import com.furiqd.home.domain.model.PushNotificationPayload
 import com.furiqd.home.domain.repository.HomeRepository
 import com.furiqd.local.contract.ImageLocalDataSource
+import com.furiqd.local.contract.RoomLocalDataSource
 import com.furiqd.network.contract.RemoteChallengeDataSource
 import com.furiqd.network.contract.RemoteRoomDataSource
 import com.furiqd.network.dto.DailyChallengeDto
@@ -18,6 +19,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -28,29 +30,47 @@ internal class HomeRepositoryImpl @Inject constructor(
     private val remoteRoomDataSource: RemoteRoomDataSource,
     private val remoteChallengeDataSource: RemoteChallengeDataSource,
     private val localFileDataSource: ImageLocalDataSource,
+    private val localRoomDataSource: RoomLocalDataSource,
     private val roomMapper: RoomMapper
 ): HomeRepository {
     override fun observeUserRooms(userId: String): Flow<List<PairingRoom>> {
-        return remoteRoomDataSource.observeUserRooms(userId)
-            .map { roomDtoList ->
-                coroutineScope {
-                    roomDtoList.map { roomDto ->
-                        async {
-                            val challengeDto = roomDto.challengeId?.let { challengeId ->
-                                runCatching { remoteChallengeDataSource.getChallengeById(challengeId) }
-                                    .onFailure { Log.e("HomeRepository", "Error fetching challenge $challengeId", it) }
-                                    .getOrNull()
+        return flow {
+            coroutineScope {
+                launch(Dispatchers.IO) {
+                    runCatching {
+                        remoteRoomDataSource.observeUserRooms(userId).collect { roomDtos ->
+                            val roomEntities = roomDtos.map { roomMapper.toEntity(it) }
+                            localRoomDataSource.insertRooms(roomEntities)
+
+                            roomDtos.mapNotNull { it.challengeId }.forEach { challengeId ->
+                                val challengeDto = remoteChallengeDataSource.getChallengeById(challengeId)
+                                if (challengeDto != null) {
+                                    localRoomDataSource.insertChallenge(roomMapper.toEntity(challengeDto))
+                                }
                             }
-                            roomMapper.toDomain(roomDto, challengeDto)
                         }
-                    }.awaitAll()
+                    }.onFailure { e ->
+                        Log.e("HomeRepository", "Error syncing rooms from remote", e)
+                    }
                 }
+
+                localRoomDataSource.observeUserRooms(userId)
+                    .map { roomEntities ->
+                        roomEntities.map { roomEntity ->
+                            val challengeEntity = roomEntity.challengeId?.let { challengeId ->
+                                localRoomDataSource.getChallenge(challengeId)
+                            }
+                            roomMapper.toDomain(roomEntity, challengeEntity)
+                        }
+                    }
+                    .collect { rooms ->
+                        emit(rooms)
+                    }
             }
-            .flowOn(Dispatchers.Default)
-            .catch { e ->
-                Log.e("HomeRepository", "Error observing user rooms", e)
-                emit(emptyList())
-            }
+        }.flowOn(Dispatchers.IO).catch { e ->
+            Log.e("HomeRepository", "Error observing user rooms", e)
+            emit(emptyList())
+        }
     }
 
     override suspend fun getRoomWithChallenge(roomId: String, userId: String): Result<PairingRoom> =

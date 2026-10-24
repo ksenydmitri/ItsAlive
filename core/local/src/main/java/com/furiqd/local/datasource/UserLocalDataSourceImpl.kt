@@ -40,4 +40,8 @@ class UserLocalDataSourceImpl @Inject constructor(
         userDao.clearUser()
         preferencesManager.clear()
     }
+
+    override suspend fun getUsersByIds(ids: List<String>): List<LocalUserEntity> {
+        return userDao.getUsersByIds(ids)
+    }
 }

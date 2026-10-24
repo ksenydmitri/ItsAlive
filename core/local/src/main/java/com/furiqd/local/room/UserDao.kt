@@ -20,4 +20,10 @@ interface UserDao {
 
     @Query("DELETE FROM users")
     suspend fun clearUser()
+
+    @Query("SELECT * FROM users WHERE id IN (:ids)")
+    suspend fun getUsersByIds(ids: List<String>): List<LocalUserEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUsers(users: List<LocalUserEntity>)
 }

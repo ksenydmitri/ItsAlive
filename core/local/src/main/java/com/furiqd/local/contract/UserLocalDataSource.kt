@@ -11,4 +11,5 @@ interface UserLocalDataSource {
     suspend fun getUser(): LocalUserEntity?
     suspend fun saveUser(user: LocalUserEntity)
     suspend fun clearLocalData()
+    suspend fun getUsersByIds(ids: List<String>): List<LocalUserEntity>
 }
