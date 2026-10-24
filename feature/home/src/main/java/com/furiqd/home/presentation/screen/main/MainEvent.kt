@@ -11,7 +11,6 @@ sealed interface MainEvent {
     data class CopyInviteCodeClicked(val code: String) : MainEvent
     data class DeleteRoomClicked(val roomId: String) : MainEvent
     object InciteFriendClicked : MainEvent
-    object RoomChangedToNextInPager : MainEvent
-    object RoomChangedToPreviousInPager : MainEvent
+    data class PageSelected(val pageIndex: Int) : MainEvent
     data class UpdateFcmToken(val token: String) : MainEvent
 }

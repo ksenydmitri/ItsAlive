@@ -25,8 +25,10 @@ fun rememberCameraLauncher(
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { isSuccess ->
-        if (isSuccess && tempUri != null) {
-            onPhotoCaptured(tempUri!!)
+        if (isSuccess) {
+            tempUri?.let { uri ->
+                onPhotoCaptured(uri)
+            }
         }
     }
 

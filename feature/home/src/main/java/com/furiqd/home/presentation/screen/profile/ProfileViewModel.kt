@@ -10,7 +10,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,7 +32,11 @@ internal class ProfileViewModel@Inject constructor(
     init {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            getUserUseCase.invoke().collect { user ->
+            getUserUseCase.invoke()
+                .catch { error ->
+                    _uiState.update { it.copy(isLoading = false, isError = true) }
+                }
+                .collect { user ->
                 _uiState.value = _uiState.value.copy(
                     user = UserProfile(
                         id = user?.id ?: "",
@@ -38,10 +44,11 @@ internal class ProfileViewModel@Inject constructor(
                         email = user?.email ?: "",
                         avatarUrl = imageFormatter.format(user?.avatarId),
                         amountOfRooms = user?.roomIds?.size ?: 0
-                    )
+                    ),
+                    isLoading = false,
+                    isError = false
                 )
             }
-            _uiState.value = _uiState.value.copy(isLoading = false)
         }
     }
 

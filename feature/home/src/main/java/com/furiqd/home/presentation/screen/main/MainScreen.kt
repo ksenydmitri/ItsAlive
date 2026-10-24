@@ -26,7 +26,6 @@ import com.furiqd.home.presentation.element.CreateRoomPlaceholderCard
 import com.furiqd.home.presentation.element.WaitingForFriendRoomCard
 import com.furiqd.shared.ui.elements.rememberCameraLauncher
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     state: MainState,
@@ -34,6 +33,9 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState(pageCount = { state.rooms.size })
+    LaunchedEffect(pagerState.currentPage) {
+        onEvent(MainEvent.PageSelected(pagerState.currentPage))
+    }
     val launchCamera = rememberCameraLauncher(
         onPhotoCaptured = { uri ->
             onEvent(MainEvent.ChallengePhotoCaptured(uri))

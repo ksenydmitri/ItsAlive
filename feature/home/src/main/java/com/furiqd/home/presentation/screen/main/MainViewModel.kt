@@ -61,13 +61,9 @@ internal class MainViewModel @Inject constructor(
             is MainEvent.OpenCreateRoomDialogClicked -> sendEffect(MainEffect.NavigateToPairing)
             is MainEvent.DeleteRoomClicked -> deleteRoom(event.roomId)
             is MainEvent.InciteFriendClicked -> inciteFriend()
-            is MainEvent.RoomChangedToNextInPager -> {
-                val targetRoomId = _uiState.value.nextRoom?.id ?: return
-                changeSelectedRoom(targetRoomId)
-            }
-            is MainEvent.RoomChangedToPreviousInPager -> {
-                val targetRoomId = _uiState.value.previousRoom?.id ?: return
-                changeSelectedRoom(targetRoomId)
+            is MainEvent.PageSelected -> {
+                val targetRoom = _uiState.value.rooms.getOrNull(event.pageIndex) ?: return
+                changeSelectedRoom(targetRoom.id)
             }
             is MainEvent.ChallengePhotoCaptured -> uploadChallengePhoto(event.uri)
         }
@@ -129,17 +125,31 @@ internal class MainViewModel @Inject constructor(
     private fun uploadChallengePhoto(uri: Uri) {
         viewModelScope.launch {
             val roomId = uiState.value.selectedRoom?.id ?: return@launch
+
+            _uiState.update { it.copy(isLoading = true) }
+
             submitChallengePhotoUseCase(
                 roomId = roomId,
                 photoPath = uri.toString(),
                 userId = uiState.value.userId
-            )
+            ).onSuccess {
+                _uiState.update { it.copy(isLoading = false) }
+            }.onFailure { error ->
+                _uiState.update { it.copy(isLoading = false) }
+                Log.e("MainViewModel", "Failed to upload photo", error)
+                sendEffect(MainEffect.ShowToast(R.string.error_get_rooms)) // Или создай специальный ресурную строку для ошибки фото
+            }
         }
     }
 
     private fun deleteRoom(roomId: String) {
         viewModelScope.launch {
-            deleteRoomUseCase(roomId)
+            runCatching {
+                deleteRoomUseCase(roomId)
+            }.onFailure { error ->
+                Log.e("MainViewModel", "Failed to delete room", error)
+                sendEffect(MainEffect.ShowToast(R.string.error_get_rooms))
+            }
         }
     }
 
