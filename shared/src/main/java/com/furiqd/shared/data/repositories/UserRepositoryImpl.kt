@@ -151,7 +151,8 @@ class UserRepositoryImpl @Inject constructor(
         return isCompleted
     }
 
-    override suspend fun updateFcmToken(userId: String) = runCatching {
-        remoteDataSource.updateFcmToken(userId)
+    override suspend fun updateFcmToken(token: String): Result<Unit> = runCatching {
+        val userId = remoteDataSource.currentUserId ?: throw IllegalStateException("No active user")
+        remoteDataSource.updateFcmToken(userId, token)
     }
 }

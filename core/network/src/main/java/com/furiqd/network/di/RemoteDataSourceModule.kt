@@ -1,20 +1,21 @@
 package com.furiqd.network.di
 
+import android.content.Context
 import com.furiqd.network.contract.RemoteAuthDataSource
 import com.furiqd.network.contract.RemoteChallengeDataSource
 import com.furiqd.network.contract.RemoteImageDataSource
 import com.furiqd.network.contract.RemoteRoomDataSource
-import com.furiqd.network.datasource.BackendlessChallengeApi
+import com.furiqd.network.datasource.BackendlessApi
 import com.furiqd.network.datasource.ChallengeRemoteDataSourceImpl
 import com.furiqd.network.datasource.FirebaseAuthDataSource
 import com.furiqd.network.datasource.FirebaseRoomDataSource
 import com.furiqd.network.datasource.GoogleStorageDataSource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -54,9 +55,10 @@ object RemoteDataSourceModule {
     fun provideRemoteAuthDataSource(
         auth: FirebaseAuth,
         firestore: FirebaseFirestore,
-        firebaseMessaging: FirebaseMessaging
+        backendlessApi: BackendlessApi,
+        @ApplicationContext context: Context
     ): RemoteAuthDataSource {
-        return FirebaseAuthDataSource(auth, firestore, firebaseMessaging)
+        return FirebaseAuthDataSource(auth, firestore, backendlessApi,context)
     }
 
     @Provides
@@ -79,10 +81,8 @@ object RemoteDataSourceModule {
     @Provides
     @Singleton
     fun provideRemoteChallengeDataSource(
-        backendlessApi: BackendlessChallengeApi
+        backendlessApi: BackendlessApi
     ): RemoteChallengeDataSource {
-        return ChallengeRemoteDataSourceImpl(backendlessApi,
-            OkHttpClient(),
-            Json)
+        return ChallengeRemoteDataSourceImpl(backendlessApi)
     }
 }

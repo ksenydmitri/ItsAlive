@@ -14,13 +14,18 @@ data class PairingRoom(
     val isStreakActive: Boolean,
     val streakCount: Int
 ) {
+    val expirationTime: Long
+        get() = createdAt + TimeUnit.HOURS.toMillis(EXPIRATION_HOURS)
+
     fun isExpired(currentTime: Long): Boolean {
-        val expirationTime = createdAt + TimeUnit.HOURS.toMillis(24)
         return currentTime > expirationTime
     }
 
     fun getMillisLeft(currentTime: Long): Long {
-        val expirationTime = createdAt + TimeUnit.HOURS.toMillis(24)
         return (expirationTime - currentTime).coerceAtLeast(0L)
+    }
+
+    companion object {
+        const val EXPIRATION_HOURS = 24L
     }
 }

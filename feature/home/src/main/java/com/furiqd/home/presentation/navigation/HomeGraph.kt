@@ -14,7 +14,6 @@ fun NavGraphBuilder.homeGraph(navController: NavController,
         composable<MainDestination> {
             MainRoute(
                 onNavigateToProfile = { navController.navigate(ProfileDestination) },
-                onNavigateToAuth = { onNavigateToAuth()},
                 onNavigateToPairing = { onNavigateToPairing() }
             )
         }

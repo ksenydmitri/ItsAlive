@@ -14,19 +14,22 @@ fun HomeRoomDetails.toUiModel(isSelected: Boolean = false): RoomUiModel {
                 inviteCode = room.code,
                 petName = room.pet.name,
                 petAvatarId = PetEggConfig.getDrawableByType(room.pet.petEggType),
-                expiringTime = room.createdAt,
+                expiringTime = room.expirationTime,
                 userAvatarUrl = currentUser.avatarId
             )
         }
 
         RoomStatus.Active -> {
-            val challengeForActiveHour = if (room.challenge != null && room.challenge!!.isActiveHour) {
-                this.room.challenge!!.toUiModel()
+            val challenge = room.challenge
+            val challengeUiModel = if (challenge != null && challenge.isActiveHour) {
+                challenge.toUiModel(
+                    isCurrentUserHost = this.isHost
+                )
             } else {
                 null
             }
 
-            return RoomUiModel.Active(
+            RoomUiModel.Active(
                 id = room.id,
                 isSelected = isSelected,
                 petName = room.pet.name,
@@ -35,8 +38,8 @@ fun HomeRoomDetails.toUiModel(isSelected: Boolean = false): RoomUiModel {
                 friendAvatarUrl = partnerUser?.avatarId,
                 isStreakActive = room.isStreakActive,
                 streakCount = room.streakCount,
-                isActiveHour = room.challenge?.isActiveHour ?: false,
-                challengeUiModel = challengeForActiveHour
+                isActiveHour = challenge?.isActiveHour ?: false,
+                challengeUiModel = challengeUiModel
             )
         }
 

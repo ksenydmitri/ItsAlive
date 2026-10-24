@@ -96,7 +96,6 @@ fun MainScreen(
 @Composable
 fun MainRoute(
     onNavigateToProfile: () -> Unit,
-    onNavigateToAuth: () -> Unit,
     onNavigateToPairing: () -> Unit,
 ) {
     val viewModel: MainViewModel = hiltViewModel()

@@ -1,14 +1,14 @@
 package com.furiqd.network.datasource
 
-import com.furiqd.network.BuildConfig
 import com.furiqd.network.dto.BackendlessPushRequest
 import com.furiqd.network.dto.ChallengeTaskDto
 import com.furiqd.network.dto.DailyChallengeDto
+import com.furiqd.network.dto.DeviceRegistrationRequest
+import com.furiqd.network.dto.DeviceRegistrationResponse
 import com.furiqd.network.dto.FileUploadResponseDto
 import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -17,7 +17,7 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface BackendlessChallengeApi {
+interface BackendlessApi {
     @GET("data/daily_challenges/{objectId}")
     suspend fun getChallengeById(
         @Path("objectId") challengeId: String
@@ -62,4 +62,9 @@ interface BackendlessChallengeApi {
         @Path("channelName") channelName: String = "default",
         @Body request: BackendlessPushRequest
     )
+
+    @POST("messaging/registrations")
+    suspend fun registerDevice(
+        @Body request: DeviceRegistrationRequest
+    ): DeviceRegistrationResponse
 }

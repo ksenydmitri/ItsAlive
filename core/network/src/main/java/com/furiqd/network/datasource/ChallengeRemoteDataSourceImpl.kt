@@ -1,27 +1,22 @@
 package com.furiqd.network.datasource
 
 import android.util.Log
-import com.furiqd.network.BuildConfig
 import com.furiqd.network.contract.RemoteChallengeDataSource
 import com.furiqd.network.dto.BackendlessPushRequest
 import com.furiqd.network.dto.ChallengeTaskDto
 import com.furiqd.network.dto.DailyChallengeDto
-import kotlinx.coroutines.Dispatchers
+import com.furiqd.network.dto.DeliveryOptions
+import com.furiqd.network.dto.PushPolicy
+import com.furiqd.network.model.PushNotificationType
+import com.furiqd.network.model.PushPayloadKeys
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 class ChallengeRemoteDataSourceImpl @Inject constructor(
-    private val backendlessApi: BackendlessChallengeApi,
-    private val okHttpClient: OkHttpClient,
-    private val json: Json
+    private val backendlessApi: BackendlessApi
 ) : RemoteChallengeDataSource {
 
     override suspend fun getChallengeById(challengeId: String): DailyChallengeDto? {
@@ -75,18 +70,29 @@ class ChallengeRemoteDataSourceImpl @Inject constructor(
         senderId: String,
         recipientId: String
     ) {
+        val sanitizedRecipientId = recipientId.replace("'", "''")
+
+        val payloadData = mapOf(
+            PushPayloadKeys.TYPE to PushNotificationType.INCITE_FRIEND.name,
+            PushPayloadKeys.ROOM_ID to roomId,
+            PushPayloadKeys.SENDER_ID to senderId,
+            "android-priority" to "high"
+        )
+
         backendlessApi.sendPushNotification(
+            channelName = "default",
             request = BackendlessPushRequest(
-            message = "Друг зовет в игру!",
-            pushSinglecast = listOf(recipientId),
-            headers = mapOf(
-                "android-ticker-text" to "Друг зовет в игру!",
-                "android-content-title" to "Эй! Твой друг ждет 🐾",
-                "android-content-text" to "Пора сделать совместное фото!",
-                "roomId" to roomId,
-                "type" to "INCITE_FRIEND"
-                )
+                message = "DATA_PUSH",
+                deliveryOptions = DeliveryOptions(
+                    pushPolicy = PushPolicy.ONLY,
+                    whereClause = "userId = '$sanitizedRecipientId'"
+                ),
+                headers = payloadData
             )
         )
+    }
+
+    private companion object {
+        const val DEFAULT_CHANNEL = "default"
     }
 }

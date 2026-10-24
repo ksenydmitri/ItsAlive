@@ -1,7 +1,7 @@
 package com.furiqd.network.di
 
 import com.furiqd.network.BuildConfig
-import com.furiqd.network.datasource.BackendlessChallengeApi
+import com.furiqd.network.datasource.BackendlessApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,7 +34,7 @@ object BackendlessNetworkModule {
     fun provideBackendlessApi(
         okHttpClient: OkHttpClient,
         json: Json
-    ): BackendlessChallengeApi {
+    ): BackendlessApi {
         val contentType = "application/json".toMediaType()
 
         return Retrofit.Builder()
@@ -42,6 +42,6 @@ object BackendlessNetworkModule {
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
-            .create(BackendlessChallengeApi::class.java)
+            .create(BackendlessApi::class.java)
     }
 }

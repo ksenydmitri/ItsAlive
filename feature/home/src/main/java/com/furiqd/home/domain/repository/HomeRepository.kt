@@ -1,5 +1,6 @@
 package com.furiqd.home.domain.repository
 
+import com.furiqd.home.domain.model.PushNotificationPayload
 import com.furiqd.shared.domain.model.DailyChallenge
 import com.furiqd.shared.domain.model.PairingRoom
 import kotlinx.coroutines.flow.Flow
@@ -18,5 +19,5 @@ internal interface HomeRepository {
 
     suspend fun checkActiveHour(challengeId: String): Boolean
     suspend fun getRoomWithChallenge(roomId: String, userId: String): Result<PairingRoom>
-    suspend fun inciteFriend(roomId: String, senderId: String, recipientId: String): Result<Unit>
+    suspend fun inciteFriend(payload: PushNotificationPayload)
 }

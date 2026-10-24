@@ -29,6 +29,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.syncFcmToken()
         enableEdgeToEdge()
         setContent {
             val sessionState by viewModel.sessionState.collectAsState()

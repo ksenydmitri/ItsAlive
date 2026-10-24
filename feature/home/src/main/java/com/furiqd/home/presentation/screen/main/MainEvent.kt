@@ -13,4 +13,5 @@ sealed interface MainEvent {
     object InciteFriendClicked : MainEvent
     object RoomChangedToNextInPager : MainEvent
     object RoomChangedToPreviousInPager : MainEvent
+    data class UpdateFcmToken(val token: String) : MainEvent
 }
