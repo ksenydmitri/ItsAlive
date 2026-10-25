@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
@@ -137,7 +136,7 @@ internal class MainViewModel @Inject constructor(
             }.onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
                 Log.e("MainViewModel", "Failed to upload photo", error)
-                sendEffect(MainEffect.ShowToast(R.string.error_get_rooms)) // Или создай специальный ресурную строку для ошибки фото
+                sendEffect(MainEffect.ShowToast(R.string.error_get_rooms))
             }
         }
     }

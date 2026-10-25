@@ -24,12 +24,12 @@ class UserLocalDataSourceImpl @Inject constructor(
         preferencesManager.saveOnboardingStatus(isCompleted)
     }
 
-    override fun observeUser(): Flow<LocalUserEntity?> {
-        return userDao.observeUser()
+    override fun observeUserById(userId: String): Flow<LocalUserEntity?> {
+        return userDao.observeUserById(userId)
     }
 
-    override suspend fun getUser(): LocalUserEntity? {
-        return userDao.getUser()
+    override suspend fun getUserById(userId: String): LocalUserEntity? {
+        return userDao.getUserById(userId)
     }
 
     override suspend fun saveUser(user: LocalUserEntity) {

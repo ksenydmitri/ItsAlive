@@ -2,6 +2,8 @@ package com.furiqd.itsalive
 
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -13,17 +15,46 @@ import com.furiqd.pairing.presentation.navigation.PairingGraph
 import com.furiqd.pairing.presentation.navigation.pairingGraph
 import com.furiqd.personalisation.presentation.navigation.personalisationGraph
 import com.furiqd.personalisation.presentation.navigation.PersonalisationGraph
+import com.furiqd.shared.domain.model.UserSessionState
 
 @Composable
 fun AppNavigation(
-    startGraph: Any = AuthGraph,
+    sessionState: UserSessionState,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
+    val initialStartDestination = remember {
+        when (sessionState) {
+            UserSessionState.NeedsOnboarding -> PersonalisationGraph
+            UserSessionState.FullyAuthorized -> HomeGraph
+            else -> AuthGraph
+        }
+    }
+
+    LaunchedEffect(sessionState) {
+        when (sessionState) {
+            UserSessionState.NotAuthorized -> {
+                navController.navigate(AuthGraph) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            UserSessionState.NeedsOnboarding -> {
+                navController.navigate(PersonalisationGraph) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            UserSessionState.FullyAuthorized -> {
+                navController.navigate(HomeGraph) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            UserSessionState.Loading -> {}
+        }
+    }
 
     NavHost(
         navController = navController,
-        startDestination = startGraph,
+        startDestination = initialStartDestination,
         modifier = modifier
     ) {
         authGraph(
@@ -52,7 +83,11 @@ fun AppNavigation(
 
         homeGraph(
             navController = navController,
-            onNavigateToAuth = { navController.navigate(AuthGraph) },
+            onNavigateToAuth = {
+                navController.navigate(AuthGraph) {
+                    popUpTo(0) { inclusive = true }
+                }
+            },
             onNavigateToPairing = { navController.navigate(PairingGraph) }
         )
 

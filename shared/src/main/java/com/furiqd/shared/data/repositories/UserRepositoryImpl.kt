@@ -36,7 +36,7 @@ class UserRepositoryImpl @Inject constructor(
                 flowOf(UserSessionState.NotAuthorized)
             } else {
                 syncSessionSilently(userId)
-                localDataSource.observeUser().map { localEntity ->
+                localDataSource.observeUserById(userId).map { localEntity ->
                     val user = localEntity?.let { userMapper.toDomain(it) }
 
                     val state = when {
@@ -68,17 +68,21 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override fun observeUser(): Flow<User?> {
-        return localDataSource.observeUser()
-            .map { entity ->
-                val domainUser = entity?.let { userMapper.toDomain(it) }
-                domainUser
+        return remoteDataSource.currentUserIdFlow.flatMapLatest { currentUserId ->
+            if (currentUserId == null) {
+                flowOf(null)
+            } else {
+                localDataSource.observeUserById(currentUserId).map { entity ->
+                    entity?.let { userMapper.toDomain(it) }
+                }
             }
+        }
     }
 
     override suspend fun getUser(): User? {
-        val localEntity = localDataSource.getUser()
-        val domainUser = localEntity?.let { userMapper.toDomain(it) }
-        return domainUser
+        val userId = remoteDataSource.currentUserId ?: return null
+        val localEntity = localDataSource.getUserById(userId)
+        return localEntity?.let { userMapper.toDomain(it) }
     }
 
     override suspend fun getUserById(userId: String): User? {
@@ -133,7 +137,7 @@ class UserRepositoryImpl @Inject constructor(
         return runCatching {
             val userId = remoteDataSource.currentUserId
                 ?: throw IllegalStateException("No active user")
-            val localUser = localDataSource.getUser()
+            val localUser = localDataSource.getUserById(userId)
             val currentEmail = localUser?.email.orEmpty()
 
             val completedUser = user.copy(
@@ -158,7 +162,8 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun checkIsOnboardingCompleted(): Boolean {
-        val isCompleted = localDataSource.getUser()?.isOnboardingCompleted ?: false
+        val userId = remoteDataSource.currentUserId ?: return false
+        val isCompleted = localDataSource.getUserById(userId)?.isOnboardingCompleted ?: false
         return isCompleted
     }
 

@@ -104,21 +104,6 @@ internal class HomeRepositoryImpl @Inject constructor(
         remoteRoomDataSource.deleteRoom(roomId)
     }
 
-    override fun observeChallenge(challengeId: String): Flow<DailyChallenge> {
-        return remoteChallengeDataSource.observeChallenge(challengeId)
-            .map { it.toDomain() }
-            .catch { e ->
-                Log.e("HomeRepository", "Error observing challenge $challengeId", e)
-            }
-    }
-
-    override suspend fun getChallenge(challengeId: String): Result<DailyChallenge> =
-        runCatching {
-            remoteChallengeDataSource.getChallengeById(challengeId)
-        }.map { dto ->
-            dto?.toDomain() ?: throw Exception("Challenge not found")
-        }
-
     override suspend fun submitChallengePhoto(
         roomId: String,
         photoPath: String,

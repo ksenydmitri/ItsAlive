@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.Flow
 internal interface HomeRepository {
     fun observeUserRooms(userId: String): Flow<List<PairingRoom>>
     suspend fun deleteRoom(roomId: String)
-    fun observeChallenge(challengeId: String): Flow<DailyChallenge>
-    suspend fun getChallenge(challengeId: String): Result<DailyChallenge>
 
     suspend fun submitChallengePhoto(
         roomId: String,

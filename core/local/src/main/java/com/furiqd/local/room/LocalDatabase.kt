@@ -11,7 +11,7 @@ import com.furiqd.local.entity.RoomEntity
     JointPetEntity::class,
     LocalUserEntity::class,
     DailyChallengeEntity::class,
-    RoomEntity::class], version = 7, exportSchema = false)
+    RoomEntity::class], version = 8, exportSchema = false)
 abstract class LocalDatabase : RoomDatabase() {
     abstract fun petDao(): PetDao
     abstract fun userDao(): UserDao
