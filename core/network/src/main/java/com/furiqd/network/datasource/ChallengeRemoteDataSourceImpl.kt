@@ -9,7 +9,7 @@ import com.furiqd.network.dto.DeliveryOptions
 import com.furiqd.network.dto.PushPolicy
 import com.furiqd.network.model.PushNotificationType
 import com.furiqd.network.model.PushPayloadKeys
-import kotlinx.coroutines.flow.Flow
+import com.furiqd.network.model.PushPriority
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -23,10 +23,6 @@ class ChallengeRemoteDataSourceImpl @Inject constructor(
         return runCatching {
             backendlessApi.getChallengeByIdWithTask(challengeId)
         }.getOrNull()
-    }
-
-    override fun observeChallenge(challengeId: String): Flow<DailyChallengeDto> {
-        TODO("Not yet implemented")
     }
 
     override suspend fun uploadUserPhoto(
@@ -76,11 +72,11 @@ class ChallengeRemoteDataSourceImpl @Inject constructor(
             PushPayloadKeys.TYPE to PushNotificationType.INCITE_FRIEND.name,
             PushPayloadKeys.ROOM_ID to roomId,
             PushPayloadKeys.SENDER_ID to senderId,
-            "android-priority" to "high"
+            PushPayloadKeys.ANDROID_PRIORITY to PushPriority.HIGH
         )
 
         backendlessApi.sendPushNotification(
-            channelName = "default",
+            channelName = DEFAULT_CHANNEL,
             request = BackendlessPushRequest(
                 message = "DATA_PUSH",
                 deliveryOptions = DeliveryOptions(

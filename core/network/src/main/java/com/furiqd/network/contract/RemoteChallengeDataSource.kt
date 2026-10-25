@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface RemoteChallengeDataSource {
     suspend fun getChallengeById(challengeId: String): DailyChallengeDto?
-    fun observeChallenge(challengeId: String): Flow<DailyChallengeDto>
     suspend fun uploadUserPhoto(
         challengeId: String,
         userId: String,
