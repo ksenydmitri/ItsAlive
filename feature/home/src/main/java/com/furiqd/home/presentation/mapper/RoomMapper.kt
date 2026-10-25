@@ -1,7 +1,7 @@
 package com.furiqd.home.presentation.mapper
 
 import com.furiqd.home.domain.model.HomeRoomDetails
-import com.furiqd.home.presentation.screen.main.RoomUiModel
+import com.furiqd.home.presentation.model.RoomUiModel
 import com.furiqd.shared.config.PetEggConfig
 import com.furiqd.shared.domain.model.RoomStatus
 

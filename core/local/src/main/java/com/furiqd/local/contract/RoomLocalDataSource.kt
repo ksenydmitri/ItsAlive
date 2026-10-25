@@ -11,4 +11,5 @@ interface RoomLocalDataSource {
     suspend fun insertChallenge(challenge: DailyChallengeEntity)
     suspend fun deleteChallenge(challengeId: String)
     suspend fun deleteAllChallenges()
+    suspend fun updateStreak(roomId: String, streakCount: Int, isStreakActive: Boolean)
 }

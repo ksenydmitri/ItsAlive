@@ -11,11 +11,20 @@ internal class SubmitChallengePhotoUseCase @Inject constructor(
         roomId: String,
         photoPath: String,
         userId: String
-    ): Result<Unit> {
-        Log.e("SubmitChallengePhotoUseCase", "invoke: $roomId, $photoPath, $userId")
-        return challengeRepository.submitChallengePhoto(
-            roomId,
-            photoPath,
-            userId)
+    ): Result<Unit> = runCatching {
+        challengeRepository.submitChallengePhoto(roomId, photoPath, userId).getOrThrow()
+        val room = challengeRepository.getRoomWithChallenge(roomId, userId).getOrThrow()
+        val challenge = room.challenge ?: return@runCatching
+
+        val isBothPhotosDone = challenge.userPhotoUrl != null && challenge.friendPhotoUrl != null
+        val isTimeValid = System.currentTimeMillis() <= (challenge.expiresAt ?: 0L)
+
+        if (isBothPhotosDone && isTimeValid) {
+            challengeRepository.updateStreak(
+                roomId = roomId,
+                streakCount = room.streakCount + 1,
+                isStreakActive = true
+            )
+        }
     }
 }

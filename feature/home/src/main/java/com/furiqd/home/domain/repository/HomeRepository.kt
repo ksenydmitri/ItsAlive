@@ -18,4 +18,5 @@ internal interface HomeRepository {
     suspend fun checkActiveHour(challengeId: String): Boolean
     suspend fun getRoomWithChallenge(roomId: String, userId: String): Result<PairingRoom>
     suspend fun inciteFriend(payload: PushNotificationPayload)
+    suspend fun updateStreak(roomId: String, streakCount: Int, isStreakActive: Boolean)
 }

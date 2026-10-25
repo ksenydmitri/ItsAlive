@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.furiqd.home.presentation.element.ActiveRoomCard
 import com.furiqd.home.presentation.element.CreateRoomPlaceholderCard
 import com.furiqd.home.presentation.element.WaitingForFriendRoomCard
+import com.furiqd.home.presentation.model.RoomUiModel
 import com.furiqd.shared.ui.elements.rememberCameraLauncher
 
 @Composable

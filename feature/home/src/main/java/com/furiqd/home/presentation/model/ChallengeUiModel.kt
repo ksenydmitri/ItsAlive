@@ -1,4 +1,4 @@
-package com.furiqd.home.presentation.navigation
+package com.furiqd.home.presentation.model
 
 data class ChallengeUiModel(
     val id: String,
@@ -6,5 +6,6 @@ data class ChallengeUiModel(
     val userTask: String,
     val friendTask: String,
     val isUserDone: Boolean,
-    val isFriendDone: Boolean
+    val isFriendDone: Boolean,
+    val displayState: ChallengeDisplayState
 )

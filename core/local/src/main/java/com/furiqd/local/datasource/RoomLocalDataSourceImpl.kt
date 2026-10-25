@@ -35,4 +35,8 @@ class RoomLocalDataSourceImpl@Inject constructor(
     override suspend fun deleteAllChallenges() {
         return challengeDao.deleteAllChallenges()
     }
+
+    override suspend fun updateStreak(roomId: String, streakCount: Int, isStreakActive: Boolean) {
+        roomDao.updateStreak(roomId, streakCount, isStreakActive)
+    }
 }

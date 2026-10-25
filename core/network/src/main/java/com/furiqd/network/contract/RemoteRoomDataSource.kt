@@ -12,4 +12,5 @@ interface RemoteRoomDataSource {
     suspend fun createRoom(newRoomDto: PairingRoomDto): String
     suspend fun joinRoom(inviteCode: String, friendUserId: String): String
     suspend fun isCodeExisting(code: String): Boolean
+    suspend fun updateStreak(roomId: String, streakCount: Int, isStreakActive: Boolean)
 }

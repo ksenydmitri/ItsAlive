@@ -7,15 +7,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
@@ -32,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,23 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.furiqd.home.R
-import com.furiqd.home.presentation.screen.main.RoomUiModel
+import com.furiqd.home.presentation.model.ChallengeDisplayState
+import com.furiqd.home.presentation.model.RoomUiModel
 import com.furiqd.shared.ui.util.rememberCountdownTimer
-
-/**
- * 4 Понятных и взаимоисключающих состояния карточки челленджа
- */
-private sealed interface ChallengeDisplayState {
-    // 1. Задание неактивно / ждём следующий час
-    data object InactiveWaitingHour : ChallengeDisplayState
-
-    // 2. Очередь пользователя сделать фото
-    data class UserTurn(val timeLeft: Long) : ChallengeDisplayState
-
-    // 3. Пользователь уже сделал фото, ждем друга
-    data class WaitingFriend(val timeLeft: Long) : ChallengeDisplayState
-    data object CompositeReady : ChallengeDisplayState
-}
 
 @Composable
 fun ActiveRoomCard(
@@ -69,18 +53,10 @@ fun ActiveRoomCard(
     modifier: Modifier = Modifier
 ) {
     val challenge = room.challengeUiModel
-
-    val displayState = remember(challenge) {
-        when {
-            challenge == null -> ChallengeDisplayState.InactiveWaitingHour
-            challenge.isUserDone && challenge.isFriendDone -> ChallengeDisplayState.CompositeReady
-            !challenge.isUserDone -> ChallengeDisplayState.UserTurn(timeLeft = challenge.expiresAt ?: 0L)
-            else -> ChallengeDisplayState.WaitingFriend(timeLeft = challenge.expiresAt ?: 0L)
-        }
-    }
+    val displayState = challenge?.displayState ?: ChallengeDisplayState.InactiveWaitingHour
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxSize(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -92,12 +68,10 @@ fun ActiveRoomCard(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Шапка со стриком и аватарками
             StreakHeader(room = room)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Внутренний контейнер с контентом состояния
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -112,7 +86,7 @@ fun ActiveRoomCard(
                     when (displayState) {
                         is ChallengeDisplayState.UserTurn -> {
                             UserTurnContent(
-                                expiringTime = displayState.timeLeft,
+                                expiringTime = displayState.deadlineMillis,
                                 userPrompt = challenge?.userTask.orEmpty(),
                                 friendPrompt = challenge?.friendTask.orEmpty(),
                                 isFriendCompleted = challenge?.isFriendDone ?: false,
@@ -122,7 +96,7 @@ fun ActiveRoomCard(
 
                         is ChallengeDisplayState.WaitingFriend -> {
                             WaitingFriendContent(
-                                expiringTime = displayState.timeLeft,
+                                expiringTime = displayState.deadlineMillis,
                                 userPrompt = challenge?.userTask.orEmpty(),
                                 friendPrompt = challenge?.friendTask.orEmpty(),
                                 onInciteFriendClick = onInciteFriendClick
@@ -143,9 +117,6 @@ fun ActiveRoomCard(
     }
 }
 
-// ==========================================
-// СОСТОЯНИЕ 1: ОЧЕРЕДЬ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ
-// ==========================================
 @Composable
 private fun UserTurnContent(
     expiringTime: Long,
@@ -303,7 +274,7 @@ private fun CompositeReadyContent() {
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Ваш общий кадр сформирован и сохранён в галерее комнаты!",
+            text = stringResource(R.string.game_composite_ready_desc),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
             textAlign = TextAlign.Center
@@ -333,10 +304,6 @@ private fun InactiveHourContent(petAvatarId: Int) {
         )
     }
 }
-
-// ==========================================
-// ВСПОМОГАТЕЛЬНЫЕ UI-КОМПОНЕНТЫ
-// ==========================================
 
 @Composable
 private fun TimerBadge(expiringTime: Long) {

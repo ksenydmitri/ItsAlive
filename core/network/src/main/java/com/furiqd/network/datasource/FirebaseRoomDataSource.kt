@@ -110,4 +110,15 @@ internal class FirebaseRoomDataSource @Inject constructor(
 
         return !querySnapshot.isEmpty
     }
+
+    override suspend fun updateStreak(roomId: String, streakCount: Int, isStreakActive: Boolean) {
+        roomsCollection.document(roomId)
+            .update(
+                mapOf(
+                    "streakCount" to streakCount,
+                    "isStreakActive" to isStreakActive
+                )
+            )
+            .await()
+    }
 }

@@ -130,6 +130,11 @@ internal class HomeRepositoryImpl @Inject constructor(
             isHost = isHost,
             photoPath = uploadedPhotoPath
         )
+
+        val updatedChallengeDto = remoteChallengeDataSource.getChallengeById(challengeId)
+        if (updatedChallengeDto != null) {
+            localRoomDataSource.insertChallenge(roomMapper.toEntity(updatedChallengeDto))
+        }
     }
 
     override suspend fun checkActiveHour(challengeId: String): Boolean {
@@ -143,5 +148,10 @@ internal class HomeRepositoryImpl @Inject constructor(
             senderId = payload.senderId,
             recipientId = payload.recipientId
         )
+    }
+
+    override suspend fun updateStreak(roomId: String, streakCount: Int, isStreakActive: Boolean) {
+        remoteRoomDataSource.updateStreak(roomId, streakCount, isStreakActive)
+        localRoomDataSource.updateStreak(roomId, streakCount, isStreakActive)
     }
 }

@@ -43,7 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.furiqd.home.R
 import com.furiqd.shared.ui.theme.ItsAliveTheme
-import com.furiqd.home.presentation.screen.main.RoomUiModel
+import com.furiqd.home.presentation.model.RoomUiModel
 import com.furiqd.shared.R.drawable
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit

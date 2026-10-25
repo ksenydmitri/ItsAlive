@@ -1,6 +1,4 @@
-package com.furiqd.home.presentation.screen.main
-
-import com.furiqd.home.presentation.navigation.ChallengeUiModel
+package com.furiqd.home.presentation.model
 
 sealed interface RoomUiModel {
     val id: String
