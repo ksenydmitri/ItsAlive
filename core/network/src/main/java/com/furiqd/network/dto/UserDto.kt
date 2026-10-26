@@ -14,5 +14,6 @@ data class UserDto(
     var isOnboardingCompleted: Boolean = false,
     var email: String? = null,
     var nickName: String? = null,
-    var roomIds: List<String> = emptyList()
+    var roomIds: List<String> = emptyList(),
+    var fcmToken: String? = null
 )

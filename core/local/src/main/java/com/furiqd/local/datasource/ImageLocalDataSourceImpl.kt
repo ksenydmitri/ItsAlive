@@ -1,11 +1,14 @@
 package com.furiqd.local.datasource
 
+import android.content.ContentResolver
+import androidx.core.net.toUri
 import com.furiqd.local.contract.ImageLocalDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ImageLocalDataSourceImpl @Inject constructor(
+    private val contentResolver: ContentResolver
 ) : ImageLocalDataSource {
 
     companion object {
@@ -36,5 +39,17 @@ class ImageLocalDataSourceImpl @Inject constructor(
                 bytes[10] == 'B'.code.toByte() && bytes[11] == 'P'.code.toByte()
 
         return isJpeg || isPng || isWebp
+    }
+
+    override suspend fun readFileAsBytes(uriString: String): Pair<ByteArray, String>?
+    = withContext(Dispatchers.IO) {
+        runCatching {
+            val uri = uriString.toUri()
+            val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                ?: return@withContext null
+            val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
+
+            bytes to mimeType
+        }.getOrNull()
     }
 }

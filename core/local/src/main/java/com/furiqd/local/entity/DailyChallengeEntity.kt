@@ -4,11 +4,15 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "daily_challenges")
-class DailyChallengeEntity {
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
-    var isStreakActive: Boolean = false
-    var streakCount: Int = 0
-    var isActiveHour: Boolean = false
-    var expiresAt: Long = 0
-}
+data class DailyChallengeEntity(
+    @PrimaryKey val id: String,
+    val isStreakActive: Boolean,
+    val streakCount: Int,
+    val isActiveHour: Boolean,
+    val expiresAt: Long?,
+    val userTaskPrompt: String?,
+    val friendTaskPrompt: String?,
+    val userPhotoUrl: String?,
+    val friendPhotoUrl: String?,
+    val compositeImageUrl: String?
+)

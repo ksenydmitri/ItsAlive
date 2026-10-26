@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ItsAlive</string>
+    <string name="notification_channel_incite_name">Partner Reminders</string>
+    <string name="notification_channel_incite_desc">Alerts when your partner nudges you to take a photo</string>
+    <string name="push_incite_friend_title">Hey! Your partner is waiting 🐾</string>
+    <string name="push_incite_friend_message">Time to snap today\'s photo together!</string>
 </resources>

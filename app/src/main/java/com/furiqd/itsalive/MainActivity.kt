@@ -15,11 +15,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.furiqd.auth.presentation.navigation.AuthGraph
-import com.furiqd.shared.ui.theme.ItsAliveTheme
 import com.furiqd.shared.domain.model.UserSessionState
-import com.furiqd.home.presentation.navigation.HomeGraph
-import com.furiqd.personalisation.presentation.navigation.PersonalisationGraph
+import com.furiqd.shared.ui.theme.ItsAliveTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -29,7 +26,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.syncFcmToken()
         enableEdgeToEdge()
+
         setContent {
             val sessionState by viewModel.sessionState.collectAsState()
 
@@ -39,21 +38,9 @@ class MainActivity : ComponentActivity() {
                         UserSessionState.Loading -> {
                             LoadingScreen(modifier = Modifier.padding(innerPadding))
                         }
-                        UserSessionState.NotAuthorized -> {
+                        else -> {
                             AppNavigation(
-                                startGraph = AuthGraph,
-                                modifier = Modifier.padding(innerPadding)
-                            )
-                        }
-                        UserSessionState.NeedsOnboarding -> {
-                            AppNavigation(
-                                startGraph = PersonalisationGraph,
-                                modifier = Modifier.padding(innerPadding)
-                            )
-                        }
-                        UserSessionState.FullyAuthorized -> {
-                            AppNavigation(
-                                startGraph = HomeGraph,
+                                sessionState = sessionState,
                                 modifier = Modifier.padding(innerPadding)
                             )
                         }

@@ -32,22 +32,18 @@ class UserRepositoryImpl @Inject constructor(
 
     override val sessionState: StateFlow<UserSessionState> = remoteDataSource.currentUserIdFlow
         .flatMapLatest { userId ->
-            Log.d(TAG, "sessionState: Auth userId changed = $userId")
             if (userId == null) {
-                Log.d(TAG, "sessionState: No active user, emitting NotAuthorized")
                 flowOf(UserSessionState.NotAuthorized)
             } else {
                 syncSessionSilently(userId)
-                localDataSource.observeUser().map { localEntity ->
+                localDataSource.observeUserById(userId).map { localEntity ->
                     val user = localEntity?.let { userMapper.toDomain(it) }
-                    Log.d(TAG, "sessionState: Local entity mapped to Domain = $user")
 
                     val state = when {
                         user == null -> UserSessionState.Loading
                         user.isOnboardingCompleted -> UserSessionState.FullyAuthorized
                         else -> UserSessionState.NeedsOnboarding
                     }
-                    Log.d(TAG, "sessionState: Calculated state = $state")
                     state
                 }
             }
@@ -59,85 +55,71 @@ class UserRepositoryImpl @Inject constructor(
         )
     private suspend fun syncSessionSilently(userId: String) {
         runCatching {
-            Log.d(TAG, "syncSessionSilently: Fetching remote profile for $userId...")
             val remoteUserDto = remoteDataSource.getUserProfile(userId)
 
             if (remoteUserDto != null) {
                 val domainUser = userMapper.toDomain(remoteUserDto)
                 val localEntity = userMapper.toLocal(domainUser)
 
-                Log.d(TAG, "syncSessionSilently: Saving fetched user to Room DB")
                 localDataSource.saveUser(localEntity)
                 localDataSource.saveOnboardingStatus(domainUser.isOnboardingCompleted)
-            } else {
-                Log.w(TAG, "syncSessionSilently: User profile not found on remote (New user)")
             }
-        }.onFailure { e ->
-            Log.e(TAG, "syncSessionSilently: Error syncing session", e)
         }
     }
 
     override fun observeUser(): Flow<User?> {
-        return localDataSource.observeUser()
-            .map { entity ->
-                val domainUser = entity?.let { userMapper.toDomain(it) }
-                Log.d(TAG, "observeUser: Mapped LocalEntity -> Domain User: avatarId=${domainUser?.avatarId}")
-                domainUser
+        return remoteDataSource.currentUserIdFlow.flatMapLatest { currentUserId ->
+            if (currentUserId == null) {
+                flowOf(null)
+            } else {
+                localDataSource.observeUserById(currentUserId).map { entity ->
+                    entity?.let { userMapper.toDomain(it) }
+                }
             }
-            .onEach { user ->
-                Log.d(TAG, "observeUser: Emitting user = $user")
-            }
+        }
     }
 
     override suspend fun getUser(): User? {
-        Log.d(TAG, "getUser: Fetching local user...")
-        val localEntity = localDataSource.getUser()
-        val domainUser = localEntity?.let { userMapper.toDomain(it) }
-        Log.d(TAG, "getUser: Local entity = $localEntity -> Mapped Domain User = $domainUser")
-        return domainUser
+        val userId = remoteDataSource.currentUserId ?: return null
+        val localEntity = localDataSource.getUserById(userId)
+        return localEntity?.let { userMapper.toDomain(it) }
     }
 
     override suspend fun getUserById(userId: String): User? {
-        Log.d(TAG, "getUserById: Fetching remote profile for userId = $userId")
-        val remoteUserDto = remoteDataSource.getUserProfile(userId)
-        if (remoteUserDto == null) {
-            Log.w(TAG, "getUserById: Remote profile is null for userId = $userId")
-            return null
+        val localUsers = localDataSource.getUsersByIds(listOf(userId))
+        val cachedUser = localUsers.firstOrNull()?.let { userMapper.toDomain(it) }
+
+        if (cachedUser != null) {
+            return cachedUser
         }
+
+        val remoteUserDto = remoteDataSource.getUserProfile(userId) ?: return null
         val domainUser = userMapper.toDomain(remoteUserDto)
-        Log.d(TAG, "getUserById: Remote DTO mapped to Domain User = $domainUser (avatarUrl=${domainUser.avatarId})")
+        val localEntity = userMapper.toLocal(domainUser)
+
+        localDataSource.saveUser(localEntity)
+
         return domainUser
     }
 
     override suspend fun syncSession(): Result<Unit> {
-        Log.d(TAG, "syncSession: Starting session sync...")
         return runCatching {
-            val userId = remoteDataSource.currentUserId ?: throw IllegalStateException("User not logged in")
-            Log.d(TAG, "syncSession: Current userId = $userId. Fetching remote profile...")
+            val userId = remoteDataSource.currentUserId
+                ?: throw IllegalStateException("User not logged in")
 
             val remoteUserDto = remoteDataSource.getUserProfile(userId)
-            Log.d(TAG, "syncSession: Received remote DTO = $remoteUserDto")
 
             if (remoteUserDto != null) {
                 val domainUser = userMapper.toDomain(remoteUserDto)
                 val localEntity = userMapper.toLocal(domainUser)
 
-                Log.d(TAG, "syncSession: Mapped DTO -> Domain: avatarUrl=${domainUser.avatarId}")
-                Log.d(TAG, "syncSession: Saving mapped LocalEntity to DB = $localEntity")
-
                 localDataSource.saveUser(localEntity)
                 localDataSource.saveOnboardingStatus(domainUser.isOnboardingCompleted)
-            } else {
-                Log.w(TAG, "syncSession: Remote user DTO was null for userId = $userId")
-                Unit
             }
-        }.onFailure { throwable ->
-            Log.e(TAG, "syncSession: Failed with exception", throwable)
         }
     }
 
     override suspend fun saveUser(user: User): Result<Unit> {
-        Log.d(TAG, "saveUser: Input User = $user")
         return runCatching {
             val userId = remoteDataSource.currentUserId ?: throw IllegalStateException("No active user")
             val completedUser = user.copy(id = userId)
@@ -145,22 +127,17 @@ class UserRepositoryImpl @Inject constructor(
             val userDto = userMapper.toDto(completedUser)
             val localEntity = userMapper.toLocal(completedUser)
 
-            Log.d(TAG, "saveUser: Sending DTO to remote = $userDto")
             remoteDataSource.saveUserProfile(userDto)
-
-            Log.d(TAG, "saveUser: Saving LocalEntity to DB = $localEntity")
             localDataSource.saveUser(localEntity)
             localDataSource.saveOnboardingStatus(completedUser.isOnboardingCompleted)
-        }.onFailure { throwable ->
-            Log.e(TAG, "saveUser: Failed to save user", throwable)
         }
     }
 
     override suspend fun updateUser(user: User): Result<Unit> {
-        Log.d(TAG, "updateUser: Input User = $user")
         return runCatching {
-            val userId = remoteDataSource.currentUserId ?: throw IllegalStateException("No active user")
-            val localUser = localDataSource.getUser()
+            val userId = remoteDataSource.currentUserId
+                ?: throw IllegalStateException("No active user")
+            val localUser = localDataSource.getUserById(userId)
             val currentEmail = localUser?.email.orEmpty()
 
             val completedUser = user.copy(
@@ -171,34 +148,27 @@ class UserRepositoryImpl @Inject constructor(
             val userDto = userMapper.toDto(completedUser)
             val localEntity = userMapper.toLocal(completedUser)
 
-            Log.d(TAG, "updateUser: Updating Remote DTO = $userDto")
             remoteDataSource.saveUserProfile(userDto)
-
-            Log.d(TAG, "updateUser: Updating LocalEntity = $localEntity")
             localDataSource.saveUser(localEntity)
             localDataSource.saveOnboardingStatus(completedUser.isOnboardingCompleted)
-            Log.d(TAG, "updateUser: User updated successfully")
-            Unit
-        }.onFailure { throwable ->
-            Log.e(TAG, "updateUser: Failed to update user", throwable)
         }
     }
 
     override suspend fun logOut(): Result<Unit> {
-        Log.d(TAG, "logOut: Logging out user...")
         return runCatching {
             remoteDataSource.signOut()
             localDataSource.clearLocalData()
-            Log.d(TAG, "logOut: User logged out successfully")
-            Unit
-        }.onFailure { throwable ->
-            Log.e(TAG, "logOut: Failed to log out", throwable)
         }
     }
 
     override suspend fun checkIsOnboardingCompleted(): Boolean {
-        val isCompleted = localDataSource.getUser()?.isOnboardingCompleted ?: false
-        Log.d(TAG, "checkIsOnboardingCompleted: $isCompleted")
+        val userId = remoteDataSource.currentUserId ?: return false
+        val isCompleted = localDataSource.getUserById(userId)?.isOnboardingCompleted ?: false
         return isCompleted
+    }
+
+    override suspend fun updateFcmToken(token: String): Result<Unit> = runCatching {
+        val userId = remoteDataSource.currentUserId ?: throw IllegalStateException("No active user")
+        remoteDataSource.updateFcmToken(userId, token)
     }
 }

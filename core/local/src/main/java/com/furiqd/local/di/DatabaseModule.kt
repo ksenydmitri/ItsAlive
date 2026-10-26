@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.furiqd.local.room.DailyChallengeDao
 import com.furiqd.local.room.LocalDatabase
 import com.furiqd.local.room.PetDao
+import com.furiqd.local.room.RoomDao
 import com.furiqd.local.room.UserDao
 import dagger.Module
 import dagger.Provides
@@ -47,5 +48,11 @@ object DatabaseModule {
     @Singleton
     fun provideChallengeDao(database: LocalDatabase): DailyChallengeDao {
         return database.challengeDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRoomDao(database: LocalDatabase): RoomDao {
+        return database.roomDao()
     }
 }

@@ -2,15 +2,13 @@ package com.furiqd.home.domain.usecase
 
 import com.furiqd.home.domain.model.HomeRoomDetails
 import com.furiqd.home.domain.repository.HomeRepository
+import com.furiqd.shared.domain.model.User
 import com.furiqd.shared.domain.repository.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 internal class FetchRoomsUseCase @Inject constructor(
@@ -21,23 +19,40 @@ internal class FetchRoomsUseCase @Inject constructor(
     operator fun invoke(): Flow<List<HomeRoomDetails>> {
         return userRepository.observeUser().flatMapLatest { currentUser ->
             if (currentUser == null) return@flatMapLatest flowOf(emptyList())
-            homeRepository.observeUserRooms(currentUser.id).map { rooms ->
-                coroutineScope {
-                    rooms.map { room ->
-                        async {
-                            val partnerId = if (room.hostId == currentUser.id) room.friendId else room.hostId
-                            val partnerUser = partnerId?.let { userRepository.getUserById(it) }
 
+            homeRepository.observeUserRooms(currentUser.id).flatMapLatest { rooms ->
+                if (rooms.isEmpty()) {
+                    return@flatMapLatest flowOf(emptyList())
+                }
+
+                val partnerIds = rooms.mapNotNull { room ->
+                    if (room.hostId == currentUser.id) room.friendId else room.hostId
+                }.distinct()
+                val partnerFlows: List<Flow<Pair<String, User?>>> = partnerIds.map { partnerId ->
+                    kotlinx.coroutines.flow.flow {
+                        val user = userRepository.getUserById(partnerId)
+                        emit(partnerId to user)
+                    }
+                }
+
+                if (partnerFlows.isEmpty()) {
+                    flowOf(rooms.map { room ->
+                        HomeRoomDetails(room = room, currentUser = currentUser, partnerUser = null)
+                    })
+                } else {
+                    combine(partnerFlows) { partnersArray ->
+                        val partnersMap = partnersArray.toMap()
+                        rooms.map { room ->
+                            val partnerId = if (room.hostId == currentUser.id) room.friendId else room.hostId
                             HomeRoomDetails(
                                 room = room,
                                 currentUser = currentUser,
-                                partnerUser = partnerUser
+                                partnerUser = partnerId?.let { partnersMap[it] }
                             )
                         }
-                    }.awaitAll()
+                    }
                 }
             }
-
         }
     }
 }

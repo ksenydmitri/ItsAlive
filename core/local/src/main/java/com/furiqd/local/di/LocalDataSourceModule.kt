@@ -1,10 +1,14 @@
 package com.furiqd.local.di
 
 import com.furiqd.local.contract.ChallengeLocalDataSource
+import com.furiqd.local.contract.ImageLocalDataSource
 import com.furiqd.local.contract.PairingLocalDataSource
+import com.furiqd.local.contract.RoomLocalDataSource
 import com.furiqd.local.contract.TokenLocalDataSource
 import com.furiqd.local.contract.UserLocalDataSource
+import com.furiqd.local.datasource.ImageLocalDataSourceImpl
 import com.furiqd.local.datasource.PairingLocalDataSourceImpl
+import com.furiqd.local.datasource.RoomLocalDataSourceImpl
 import com.furiqd.local.datasource.TokenLocalDataSourceImpl
 import com.furiqd.local.datasource.UserLocalDataSourceImpl
 import dagger.Binds
@@ -33,4 +37,16 @@ abstract class LocalDataSourceModule {
     abstract fun bindPairingLocalDataSource(
         avatarLocalDataSourceImpl: PairingLocalDataSourceImpl
     ): PairingLocalDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindImageLocalDataSource(
+        imageLocalDataSourceImpl: ImageLocalDataSourceImpl
+    ): ImageLocalDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindRoomLocalDataSource(
+        roomLocalDataSourceImpl: RoomLocalDataSourceImpl
+    ): RoomLocalDataSource
 }

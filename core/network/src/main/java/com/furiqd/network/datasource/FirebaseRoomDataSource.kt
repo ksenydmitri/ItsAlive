@@ -32,15 +32,6 @@ internal class FirebaseRoomDataSource @Inject constructor(
             }
     }
 
-    override suspend fun sendNudge(roomId: String, senderUserId: String) {
-        roomsCollection.document(roomId)
-            .update(
-                "lastNudgeBy", senderUserId,
-                "lastNudgeTimestamp", FieldValue.serverTimestamp()
-            )
-            .await()
-    }
-
     override suspend fun getRoomDetails(roomId: String): PairingRoomDto? {
         val snapshot = roomsCollection.document(roomId).get().await()
         return if (snapshot.exists()) snapshot.toObject<PairingRoomDto>() else null

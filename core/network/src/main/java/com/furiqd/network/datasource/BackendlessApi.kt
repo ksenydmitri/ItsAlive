@@ -1,20 +1,23 @@
 package com.furiqd.network.datasource
 
+import com.furiqd.network.dto.BackendlessPushRequest
 import com.furiqd.network.dto.ChallengeTaskDto
 import com.furiqd.network.dto.DailyChallengeDto
+import com.furiqd.network.dto.DeviceRegistrationRequest
+import com.furiqd.network.dto.DeviceRegistrationResponse
+import com.furiqd.network.dto.FileUploadResponseDto
 import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
-import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface BackendlessChallengeApi {
+interface BackendlessApi {
     @GET("data/daily_challenges/{objectId}")
     suspend fun getChallengeById(
         @Path("objectId") challengeId: String
@@ -32,7 +35,7 @@ interface BackendlessChallengeApi {
         @Body challengeDto: DailyChallengeDto
     ): DailyChallengeDto
 
-    @PATCH("data/daily_challenges/{objectId}")
+    @PUT("data/daily_challenges/{objectId}")
     @Headers("Content-Type: application/json")
     suspend fun updateChallengePhoto(
         @Path("objectId") challengeId: String,
@@ -45,12 +48,23 @@ interface BackendlessChallengeApi {
     ): List<DailyChallengeDto>
 
     @Multipart
-    @PUT("files/challenges/{fileName}?overwrite=true")
+    @POST("files/challenges/{fileName}?overwrite=true")
     suspend fun uploadChallengeFile(
         @Path("fileName") fileName: String,
         @Part file: MultipartBody.Part
-    ): String
+    ): FileUploadResponseDto
 
     @GET("data/challenge_tasks?pageSize=100")
     suspend fun getChallengeTasksList(): List<ChallengeTaskDto>
+
+    @POST("messaging/{channelName}")
+    suspend fun sendPushNotification(
+        @Path("channelName") channelName: String = "default",
+        @Body request: BackendlessPushRequest
+    )
+
+    @POST("messaging/registrations")
+    suspend fun registerDevice(
+        @Body request: DeviceRegistrationRequest
+    ): DeviceRegistrationResponse
 }

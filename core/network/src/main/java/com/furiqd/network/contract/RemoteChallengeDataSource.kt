@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.Flow
 
 interface RemoteChallengeDataSource {
     suspend fun getChallengeById(challengeId: String): DailyChallengeDto?
-    fun observeChallenge(challengeId: String): Flow<DailyChallengeDto>
     suspend fun uploadUserPhoto(
         challengeId: String,
         userId: String,
-        photoBytes: ByteArray
+        photoBytes: ByteArray,
+        mimeType: String
     ): String
     suspend fun updatePhotoUrl(
         challengeId: String,
@@ -20,4 +20,9 @@ interface RemoteChallengeDataSource {
 
     suspend fun createChallenge(challengeDto: DailyChallengeDto): DailyChallengeDto
     suspend fun getRandomTask(): ChallengeTaskDto?
+    suspend fun inciteFriend(
+        roomId: String,
+        senderId: String,
+        recipientId: String
+    )
 }
