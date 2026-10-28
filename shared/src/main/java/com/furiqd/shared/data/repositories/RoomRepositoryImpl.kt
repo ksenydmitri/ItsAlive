@@ -1,19 +1,18 @@
 package com.furiqd.shared.data.repositories
 
-import com.furiqd.shared.data.mapper.toDomain
+import com.furiqd.local.contract.PetLocalDataSource
+import com.furiqd.network.contract.RemoteRoomDataSource
+import com.furiqd.shared.data.mapper.RoomMapper
 import com.furiqd.shared.data.mapper.toEntity
 import com.furiqd.shared.domain.model.PairingRoom
 import com.furiqd.shared.domain.repository.RoomRepository
-import com.furiqd.local.contract.PairingLocalDataSource
-import com.furiqd.network.contract.RemoteRoomDataSource
-import com.furiqd.shared.data.mapper.RoomMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteRoomDataSource,
-    private val localDataSource: PairingLocalDataSource,
+    private val localDataSource: PetLocalDataSource,
     private val roomMapper: RoomMapper
 ) : RoomRepository {
 

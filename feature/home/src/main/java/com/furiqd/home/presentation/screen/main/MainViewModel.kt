@@ -52,7 +52,7 @@ internal class MainViewModel @Inject constructor(
     fun handleEvent(event: MainEvent) {
         when (event) {
             is MainEvent.UpdateFcmToken -> updateFcmToken(event.token)
-            is MainEvent.CameraClicked, MainEvent.PetClicked -> sendEffect(MainEffect.TriggerPetAnimation)
+            is MainEvent.PetClicked -> sendEffect(MainEffect.NavigateToPetDashboard)
             is MainEvent.ProfileClicked -> sendEffect(MainEffect.NavigateToProfile)
             is MainEvent.CopyInviteCodeClicked -> sendEffect(MainEffect.CopyToClipboard(event.code))
             is MainEvent.OpenCreateRoomDialogClicked -> sendEffect(MainEffect.NavigateToPairing)

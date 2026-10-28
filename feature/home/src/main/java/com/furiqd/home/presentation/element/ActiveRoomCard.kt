@@ -2,11 +2,13 @@ package com.furiqd.home.presentation.element
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,10 +33,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +47,9 @@ import androidx.compose.ui.unit.dp
 import com.furiqd.home.R
 import com.furiqd.home.presentation.model.ChallengeDisplayState
 import com.furiqd.home.presentation.model.RoomUiModel
+import com.furiqd.shared.config.PetResourceConfig
+import com.furiqd.shared.domain.model.JointPet
+import com.furiqd.shared.domain.model.PetStage
 import com.furiqd.shared.ui.util.rememberCountdownTimer
 
 @Composable
@@ -50,7 +57,8 @@ fun ActiveRoomCard(
     room: RoomUiModel.Active,
     onCameraClick: () -> Unit,
     onInciteFriendClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToPetDashboard: () -> Unit
 ) {
     val challenge = room.challengeUiModel
     val displayState = challenge?.displayState ?: ChallengeDisplayState.InactiveWaitingHour
@@ -104,7 +112,10 @@ fun ActiveRoomCard(
                         }
 
                         is ChallengeDisplayState.CompositeReady -> {
-                            CompositeReadyContent()
+                            CompositeReadyContent(
+                                onNavigateToPetDashboard = onNavigateToPetDashboard,
+                                petAvatarId = room.petAvatarId
+                            )
                         }
 
                         is ChallengeDisplayState.InactiveWaitingHour -> {
@@ -240,24 +251,32 @@ private fun WaitingFriendContent(
 }
 
 @Composable
-private fun CompositeReadyContent() {
+private fun CompositeReadyContent(
+    onNavigateToPetDashboard: () -> Unit,
+    petAvatarId: Int
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onNavigateToPetDashboard)
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+
     ) {
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(64.dp)
+            modifier = Modifier.size(96.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.PhotoLibrary,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
+                Image(
+                    painter = painterResource(id = petAvatarId),
+                    contentDescription = "pet avatar",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(28.dp)
                 )
             }
         }
@@ -268,15 +287,6 @@ private fun CompositeReadyContent() {
             text = stringResource(R.string.game_composite_ready),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = stringResource(R.string.game_composite_ready_desc),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.outline,
             textAlign = TextAlign.Center
         )
     }

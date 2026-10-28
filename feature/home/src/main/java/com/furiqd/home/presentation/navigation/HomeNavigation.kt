@@ -10,3 +10,6 @@ data object MainDestination
 
 @Serializable
 data object ProfileDestination
+
+@Serializable
+data object PetDashboardDestination

@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.furiqd.home.presentation.screen.main.MainRoute
+import com.furiqd.home.presentation.screen.petdashboard.PetDashboardRoute
 import com.furiqd.home.presentation.screen.profile.ProfileRoute
 
 fun NavGraphBuilder.homeGraph(navController: NavController,
@@ -14,7 +15,8 @@ fun NavGraphBuilder.homeGraph(navController: NavController,
         composable<MainDestination> {
             MainRoute(
                 onNavigateToProfile = { navController.navigate(ProfileDestination) },
-                onNavigateToPairing = { onNavigateToPairing() }
+                onNavigateToPairing = { onNavigateToPairing() },
+                onNavigateToPetDashboard = { navController.navigate(PetDashboardDestination) }
             )
         }
 
@@ -23,6 +25,12 @@ fun NavGraphBuilder.homeGraph(navController: NavController,
                 onNavigateToMain = { navController.navigate(MainDestination) },
                 onNavigateToAuth = { onNavigateToAuth() },
                 onNavigateToEditProfile = {}
+            )
+        }
+
+        composable<PetDashboardDestination> {
+            PetDashboardRoute(
+                onNavigateBack = { navController.navigateUp() }
             )
         }
     }

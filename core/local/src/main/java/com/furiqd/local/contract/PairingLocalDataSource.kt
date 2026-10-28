@@ -8,7 +8,5 @@ interface PairingLocalDataSource {
     fun isPairingComplete(): Flow<Boolean>
     suspend fun saveRoomId(roomId: String)
     suspend fun setPairingComplete(isComplete: Boolean)
-    fun observeCachedPet(): Flow<JointPetEntity?>
-    suspend fun cachePet(pet: JointPetEntity)
     suspend fun clearLocalSession()
 }

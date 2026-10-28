@@ -133,46 +133,6 @@ class RoomMapper @Inject constructor(
         is RoomStatus.NotFound -> "NOT_FOUND"
     }
 
-    private fun RoomPetEmbedded.toDomain(): JointPet = JointPet(
-        id = id,
-        name = name,
-        level = level,
-        experience = experience,
-        stage = stage,
-        hatchedAt = hatchedAt?.let { Date(it) },
-        petEggType = PetEggType.fromId(petEggType)
-    )
-
-    private fun JointPetDto.toEmbedded(): RoomPetEmbedded = RoomPetEmbedded(
-        id = id,
-        name = name,
-        level = level,
-        experience = experience,
-        stage = stage,
-        hatchedAt = hatchedAt?.time,
-        petEggType = petEggType
-    )
-
-    private fun JointPetDto.toDomain(): JointPet = JointPet(
-        id = id,
-        name = name,
-        level = level,
-        experience = experience,
-        stage = stage,
-        hatchedAt = hatchedAt,
-        petEggType = PetEggType.fromId(petEggType)
-    )
-
-    private fun JointPet.toDto(): JointPetDto = JointPetDto(
-        id = id,
-        name = name,
-        level = level,
-        experience = experience,
-        stage = stage,
-        hatchedAt = hatchedAt,
-        petEggType = petEggType.id
-    )
-
     private fun DailyChallengeDto.toDomain(): DailyChallenge = DailyChallenge(
         id = id,
         isActiveHour = isActiveHour,

@@ -24,14 +24,6 @@ class PairingLocalDataSourceImpl @Inject constructor(
         preferencesManager.setPairingComplete(isComplete)
     }
 
-    override fun observeCachedPet(): Flow<JointPetEntity?> {
-        return petDao.getPet()
-    }
-
-    override suspend fun cachePet(pet: JointPetEntity) {
-        petDao.insertPet(pet)
-    }
-
     override suspend fun clearLocalSession() {
         preferencesManager.clear()
         petDao.deletePet()
