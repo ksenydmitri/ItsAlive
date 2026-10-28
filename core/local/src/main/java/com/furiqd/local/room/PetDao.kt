@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PetDao {
-    @Query("SELECT * FROM joint_pets LIMIT 1")
-    fun getPet(): Flow<JointPetEntity?>
+    @Query("SELECT * FROM joint_pets WHERE id = :petId")
+    fun observePetById(petId: String): Flow<JointPetEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPet(pet: JointPetEntity)

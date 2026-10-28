@@ -16,7 +16,9 @@ fun NavGraphBuilder.homeGraph(navController: NavController,
             MainRoute(
                 onNavigateToProfile = { navController.navigate(ProfileDestination) },
                 onNavigateToPairing = { onNavigateToPairing() },
-                onNavigateToPetDashboard = { navController.navigate(PetDashboardDestination) }
+                onNavigateToPetDashboard = { roomId ->
+                    navController.navigate(PetDashboardDestination(roomId = roomId))
+                }
             )
         }
 

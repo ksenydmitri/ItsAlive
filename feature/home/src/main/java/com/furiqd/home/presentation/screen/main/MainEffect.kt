@@ -6,6 +6,6 @@ sealed interface MainEffect {
     data class CopyToClipboard(val text: String) : MainEffect
     data class ShowToast(@StringRes val messageRes: Int) : MainEffect
     object NavigateToProfile : MainEffect
-    object NavigateToPetDashboard : MainEffect
+    data class NavigateToPetDashboard(val roomId: String) : MainEffect
     object NavigateToPairing : MainEffect
 }

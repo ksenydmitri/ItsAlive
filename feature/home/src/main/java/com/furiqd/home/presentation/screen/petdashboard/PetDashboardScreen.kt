@@ -1,5 +1,6 @@
 package com.furiqd.home.presentation.screen.petdashboard
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -89,7 +90,7 @@ fun PetDashboardScreen(
         if (state.isLoading) {
             CircularProgressIndicator()
         } else {
-            val pet = state.pet ?: JointPet()
+            val pet = state.pet ?: return@Box
             var petTargetBounds by remember { mutableStateOf<Rect?>(null) }
             var isHoveringPet by remember { mutableStateOf(false) }
 

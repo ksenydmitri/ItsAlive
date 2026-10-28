@@ -75,7 +75,8 @@ fun MainScreen(
                         onInciteFriendClick = {
                             Log.d("MainScreen", "Incite friend clicked")
                             onEvent(MainEvent.InciteFriendClicked) },
-                        onNavigateToPetDashboard = { onEvent(MainEvent.PetClicked) }
+                        onNavigateToPetDashboard = {
+                            onEvent(MainEvent.PetClicked(room.id)) }
                     )
                 }
                 is RoomUiModel.Placeholder -> {
@@ -101,7 +102,7 @@ fun MainScreen(
 fun MainRoute(
     onNavigateToProfile: () -> Unit,
     onNavigateToPairing: () -> Unit,
-    onNavigateToPetDashboard: () -> Unit
+    onNavigateToPetDashboard: (roomId: String) -> Unit
 ) {
     val viewModel: MainViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,7 +113,7 @@ fun MainRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is MainEffect.NavigateToPetDashboard -> {
-                    onNavigateToPetDashboard()
+                    onNavigateToPetDashboard(state.selectedRoom?.id.orEmpty())
                 }
                 is MainEffect.CopyToClipboard -> {}
                 is MainEffect.ShowToast -> {

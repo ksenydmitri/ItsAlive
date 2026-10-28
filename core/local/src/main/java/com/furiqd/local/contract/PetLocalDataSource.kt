@@ -4,6 +4,6 @@ import com.furiqd.local.entity.JointPetEntity
 import kotlinx.coroutines.flow.Flow
 
 interface PetLocalDataSource {
-    fun observeCachedPet(): Flow<JointPetEntity?>
+    fun observeCachedPetById(petId: String): Flow<JointPetEntity?>
     suspend fun cachePet(pet: JointPetEntity)
 }

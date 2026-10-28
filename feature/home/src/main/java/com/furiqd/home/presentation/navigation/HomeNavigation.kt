@@ -12,4 +12,4 @@ data object MainDestination
 data object ProfileDestination
 
 @Serializable
-data object PetDashboardDestination
+data class PetDashboardDestination(val roomId: String)

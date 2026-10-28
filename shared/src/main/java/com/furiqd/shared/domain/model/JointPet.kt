@@ -10,7 +10,7 @@ data class JointPet(
     val stage: PetStage = PetStage.EGG,
     val hatchedAt: Date? = null,
     val petEggType: PetEggType = PetEggType.GREEN,
-    val petMood: PetMood = PetMood.HAPPY,
+    val petMood: PetMood = PetMood.HAPPY
 )
 
 enum class PetStage {

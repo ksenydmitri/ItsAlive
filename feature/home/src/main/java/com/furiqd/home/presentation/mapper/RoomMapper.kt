@@ -3,6 +3,7 @@ package com.furiqd.home.presentation.mapper
 import com.furiqd.home.domain.model.HomeRoomDetails
 import com.furiqd.home.presentation.model.RoomUiModel
 import com.furiqd.shared.config.PetEggConfig
+import com.furiqd.shared.config.PetResourceConfig
 import com.furiqd.shared.domain.model.RoomStatus
 
 fun HomeRoomDetails.toUiModel(isSelected: Boolean = false): RoomUiModel {
@@ -13,7 +14,7 @@ fun HomeRoomDetails.toUiModel(isSelected: Boolean = false): RoomUiModel {
                 isSelected = isSelected,
                 inviteCode = room.code,
                 petName = room.pet.name,
-                petAvatarId = PetEggConfig.getDrawableByType(room.pet.petEggType),
+                petAvatarId = PetResourceConfig.getPetDrawable(room.pet.stage, room.pet.petEggType),
                 expiringTime = room.expirationTime,
                 userAvatarUrl = currentUser.avatarId
             )
@@ -33,7 +34,7 @@ fun HomeRoomDetails.toUiModel(isSelected: Boolean = false): RoomUiModel {
                 id = room.id,
                 isSelected = isSelected,
                 petName = room.pet.name,
-                petAvatarId = PetEggConfig.getDrawableByType(room.pet.petEggType),
+                petAvatarId = PetResourceConfig.getPetDrawable(room.pet.stage, room.pet.petEggType),
                 userAvatarUrl = currentUser.avatarId,
                 friendAvatarUrl = partnerUser?.avatarId,
                 isStreakActive = room.isStreakActive,

@@ -4,7 +4,7 @@ import android.net.Uri
 
 sealed interface MainEvent {
     object OpenCreateRoomDialogClicked : MainEvent
-    object PetClicked : MainEvent
+    data class PetClicked(val roomId: String) : MainEvent
     object ProfileClicked : MainEvent
     data class ChallengePhotoCaptured(val uri: Uri) : MainEvent
     data class CopyInviteCodeClicked(val code: String) : MainEvent

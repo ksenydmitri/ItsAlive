@@ -9,8 +9,8 @@ import javax.inject.Inject
 class PetLocalDataSourceImpl@Inject constructor(
     private val petDao: PetDao
 ): PetLocalDataSource {
-    override fun observeCachedPet(): Flow<JointPetEntity?> {
-        return petDao.getPet()
+    override fun observeCachedPetById(petId: String): Flow<JointPetEntity?> {
+        return petDao.observePetById(petId)
     }
 
     override suspend fun cachePet(pet: JointPetEntity) {
