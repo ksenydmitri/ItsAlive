@@ -1,0 +1,6 @@
+.env
+*.keystore
+*.jks
+local.properties
+/app/google-services.json
+/app/src/release/res/values/google_services.xml
