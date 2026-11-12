@@ -15,3 +15,7 @@
 .cxx
 local.properties
 /app/google-services.json
+.env
+*.keystore
+*.jks
+/app/src/release/res/values/google_services.xml
