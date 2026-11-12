@@ -3,6 +3,7 @@ package com.furiqd.local.datasource
 import com.furiqd.local.contract.RoomLocalDataSource
 import com.furiqd.local.entity.DailyChallengeEntity
 import com.furiqd.local.entity.RoomEntity
+import com.furiqd.local.entity.RoomWithChallengeEntity
 import com.furiqd.local.room.DailyChallengeDao
 import com.furiqd.local.room.RoomDao
 import kotlinx.coroutines.flow.Flow
@@ -12,16 +13,16 @@ class RoomLocalDataSourceImpl@Inject constructor(
     private val roomDao: RoomDao,
     private val challengeDao: DailyChallengeDao
 ): RoomLocalDataSource {
-    override fun observeUserRooms(userId: String): Flow<List<RoomEntity>> {
-        return roomDao.observeUserRooms(userId)
+    override fun observeUserRooms(userId: String): Flow<List<RoomWithChallengeEntity>> {
+        return roomDao.observeUserRoomsWithChallenge(userId)
     }
 
     override suspend fun insertRooms(rooms: List<RoomEntity>) {
         return roomDao.insertRooms(rooms)
     }
 
-    override suspend fun getChallenge(challengeId: String): DailyChallengeEntity? {
-        return challengeDao.getChallenge(challengeId)
+    override suspend fun getRoomWithChallenge(roomId: String): RoomWithChallengeEntity? {
+        return roomDao.getRoomWithChallenge(roomId)
     }
 
     override suspend fun insertChallenge(challenge: DailyChallengeEntity) {

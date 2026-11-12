@@ -2,30 +2,37 @@ package com.furiqd.local.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "rooms")
+@Entity(
+    tableName = "rooms",
+    foreignKeys = [
+        ForeignKey(
+            entity = DailyChallengeEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["challengeId"],
+            onDelete = ForeignKey.SET_NULL
+        )
+    ],
+    indices = [
+        Index(value = ["challengeId"]),
+        Index(value = ["hostId"]),
+        Index(value = ["friendId"])
+    ]
+)
 data class RoomEntity(
     @PrimaryKey
-    val id: String = "",
-    val code: String = "",
-    val hostId: String = "",
-    val friendId: String? = null,
+    val id: String,
+    val code: String,
+    val hostId: String,
+    val friendId: String?,
     @Embedded(prefix = "pet_")
-    val pet: RoomPetEmbedded = RoomPetEmbedded(),
-    val createdAt: Long = 0L,
-    val status: String = "",
-    val challengeId: String? = null,
+    val pet: JointPetEntity,
+    val createdAt: Long,
+    val status: String,
+    val challengeId: String?,
     val isStreakActive: Boolean,
     val streakCount: Int
-)
-
-data class RoomPetEmbedded(
-    val id: String = "",
-    val name: String = "",
-    val level: Int = 1,
-    val experience: Int = 0,
-    val stage: String = "EGG",
-    val hatchedAt: Long? = null,
-    val petEggType: Int = 0
 )

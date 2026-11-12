@@ -1,6 +1,5 @@
 package com.furiqd.home.domain.usecase
 
-import android.util.Log
 import com.furiqd.home.domain.repository.HomeRepository
 import javax.inject.Inject
 

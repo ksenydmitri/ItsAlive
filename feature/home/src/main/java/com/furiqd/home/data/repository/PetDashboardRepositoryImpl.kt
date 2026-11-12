@@ -14,14 +14,15 @@ internal class PetDashboardRepositoryImpl@Inject constructor(
     private val roomDao: RoomDao
 ): PetDashboardRepository {
 
-    override fun observePetStateById(petId: String): Flow<JointPet?> {
-        return petLocalDataSource.observeCachedPetById(petId).map { it?.toDomain()
+    override fun observePetStateByRoomId(roomId: String): Flow<JointPet?> {
+        return roomDao.observeRoomById(roomId).map { roomEntity ->
+            roomEntity?.let { room ->
+                room.pet.toDomain(streakCount = room.streakCount)
+            }
         }
     }
 
-    override fun observePetStateByRoomId(roomId: String): Flow<JointPet?> {
-        return roomDao.observeRoomById(roomId).map { roomEntity ->
-            roomEntity?.pet?.toDomain()
-        }
+    override fun updatePetState(pet: JointPet) {
+        TODO("Not yet implemented")
     }
 }

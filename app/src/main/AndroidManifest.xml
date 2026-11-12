@@ -6,6 +6,8 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
 
     <application
         android:name=".Application"
@@ -45,6 +47,9 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <receiver
+            android:name=".receiver.StreakExpirationReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

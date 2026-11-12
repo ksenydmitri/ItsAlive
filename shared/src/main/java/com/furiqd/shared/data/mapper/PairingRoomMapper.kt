@@ -2,18 +2,13 @@ package com.furiqd.shared.data.mapper
 
 import com.furiqd.local.entity.DailyChallengeEntity
 import com.furiqd.local.entity.RoomEntity
-import com.furiqd.local.entity.RoomPetEmbedded
 import com.furiqd.network.dto.ChallengeTaskDto
 import com.furiqd.network.dto.DailyChallengeDto
-import com.furiqd.network.dto.JointPetDto
 import com.furiqd.network.dto.PairingRoomDto
 import com.furiqd.shared.domain.model.ChallengeTask
 import com.furiqd.shared.domain.model.DailyChallenge
-import com.furiqd.shared.domain.model.JointPet
 import com.furiqd.shared.domain.model.PairingRoom
-import com.furiqd.shared.domain.model.PetEggType
 import com.furiqd.shared.domain.model.RoomStatus
-import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,7 +53,7 @@ class RoomMapper @Inject constructor(
             code = dto.code,
             hostId = dto.hostId,
             friendId = dto.friendId,
-            pet = dto.pet.toEmbedded(),
+            pet = dto.pet.toDomain().toEntity(),
             createdAt = dto.createdAt,
             status = dto.status,
             challengeId = dto.challengeId,
@@ -76,7 +71,7 @@ class RoomMapper @Inject constructor(
             code = entity.code,
             hostId = entity.hostId,
             friendId = entity.friendId,
-            pet = entity.pet.toDomain(),
+            pet = entity.pet.toDomain(streakCount = entity.streakCount),
             createdAt = entity.createdAt,
             status = entity.status.toRoomStatus(),
             challenge = challengeEntity?.let { toDomain(it) },
@@ -88,8 +83,6 @@ class RoomMapper @Inject constructor(
     fun toEntity(dto: DailyChallengeDto): DailyChallengeEntity {
         return DailyChallengeEntity(
             id = dto.id,
-            isStreakActive = true,
-            streakCount = 0,
             isActiveHour = dto.isActiveHour,
             expiresAt = dto.expiresAt,
             userTaskPrompt = dto.task?.userTaskPrompt,
@@ -110,8 +103,6 @@ class RoomMapper @Inject constructor(
 
         return DailyChallenge(
             id = entity.id,
-            isStreakActive = entity.isStreakActive,
-            streakCount = entity.streakCount,
             isActiveHour = entity.isActiveHour,
             expiresAt = entity.expiresAt,
             task = task,

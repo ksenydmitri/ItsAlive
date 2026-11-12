@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_streak_expired_title">Streak Expired</string>
+    <string name="notification_streak_expired_desc">
+        Time is up. Your streak has been reset, and your pet is hungry…</string>
+    <string name="notification_streak_channel_name">Streak Notifications</string>
+</resources>

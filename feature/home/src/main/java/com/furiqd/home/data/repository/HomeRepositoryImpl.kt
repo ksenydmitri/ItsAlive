@@ -1,29 +1,18 @@
 package com.furiqd.home.data.repository
 
 import android.util.Log
-import com.furiqd.home.data.mapper.toDomain
 import com.furiqd.home.domain.model.PushNotificationPayload
 import com.furiqd.home.domain.repository.HomeRepository
 import com.furiqd.local.contract.ImageLocalDataSource
 import com.furiqd.local.contract.RoomLocalDataSource
+import com.furiqd.local.scheduler.StreakExpirationScheduler
 import com.furiqd.network.contract.RemoteChallengeDataSource
 import com.furiqd.network.contract.RemoteRoomDataSource
-import com.furiqd.network.dto.DailyChallengeDto
-import com.furiqd.network.model.PushNotificationType
 import com.furiqd.shared.data.mapper.RoomMapper
-import com.furiqd.shared.domain.model.DailyChallenge
 import com.furiqd.shared.domain.model.PairingRoom
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 internal class HomeRepositoryImpl @Inject constructor(
@@ -31,74 +20,50 @@ internal class HomeRepositoryImpl @Inject constructor(
     private val remoteChallengeDataSource: RemoteChallengeDataSource,
     private val localFileDataSource: ImageLocalDataSource,
     private val localRoomDataSource: RoomLocalDataSource,
+    private val streakExpirationScheduler: StreakExpirationScheduler,
     private val roomMapper: RoomMapper
-): HomeRepository {
+) : HomeRepository {
+
     override fun observeUserRooms(userId: String): Flow<List<PairingRoom>> {
-        return flow {
-            coroutineScope {
-                launch(Dispatchers.IO) {
-                    runCatching {
-                        remoteRoomDataSource.observeUserRooms(userId).collect { roomDtos ->
-                            val roomEntities = roomDtos.map { roomMapper.toEntity(it) }
-                            localRoomDataSource.insertRooms(roomEntities)
-
-                            roomDtos.mapNotNull { it.challengeId }.forEach { challengeId ->
-                                val challengeDto = remoteChallengeDataSource.getChallengeById(challengeId)
-                                if (challengeDto != null) {
-                                    localRoomDataSource.insertChallenge(roomMapper.toEntity(challengeDto))
-                                }
-                            }
-                        }
-                    }.onFailure { e ->
-                        Log.e("HomeRepository", "Error syncing rooms from remote", e)
-                    }
-                }
-
-                localRoomDataSource.observeUserRooms(userId)
-                    .map { roomEntities ->
-                        roomEntities.map { roomEntity ->
-                            val challengeEntity = roomEntity.challengeId?.let { challengeId ->
-                                localRoomDataSource.getChallenge(challengeId)
-                            }
-                            roomMapper.toDomain(roomEntity, challengeEntity)
-                        }
-                    }
-                    .collect { rooms ->
-                        emit(rooms)
-                    }
+        return localRoomDataSource.observeUserRooms(userId).map { entities ->
+            entities.map {
+                roomMapper.toDomain(it.room, it.challenge)
             }
-        }.flowOn(Dispatchers.IO).catch { e ->
-            Log.e("HomeRepository", "Error observing user rooms", e)
-            emit(emptyList())
         }
     }
 
     override suspend fun getRoomWithChallenge(roomId: String, userId: String): Result<PairingRoom> =
         runCatching {
             coroutineScope {
-                val roomDeferred = async { remoteRoomDataSource.getRoomDetails(roomId) }
-                val roomDto = roomDeferred.await() ?: throw Exception("Room not found")
-
-                val challengeId = roomDto.challengeId
-
-                val challengeDto = if (!challengeId.isNullOrEmpty()) {
-                    remoteChallengeDataSource.getChallengeById(challengeId)
-                } else {
-                    val newChallengeDto = DailyChallengeDto(
-                        isActiveHour = true,
-                        expiresAt = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1),
-                        task = remoteChallengeDataSource.getRandomTask()
-                    )
-
-                    val createdChallenge = remoteChallengeDataSource.createChallenge(newChallengeDto)
-                    launch {
-                        remoteRoomDataSource.updateRoomChallengeId(roomId, createdChallenge.id)
-                    }
-                    createdChallenge
-                }
-                roomMapper.toDomain(roomDto, challengeDto)
+                val roomDeferred = localRoomDataSource.getRoomWithChallenge(roomId)
+                TODO("Верните объект PairingRoom здесь")
             }
         }
+    /*runCatching {
+        coroutineScope {
+            val roomDeferred = async { remoteRoomDataSource.getRoomDetails(roomId) }
+            val roomDto = roomDeferred.await() ?: throw Exception("Room not found")
+
+            val challengeId = roomDto.challengeId
+
+            val challengeDto = if (!challengeId.isNullOrEmpty()) {
+                remoteChallengeDataSource.getChallengeById(challengeId)
+            } else {
+                val newChallengeDto = DailyChallengeDto(
+                    isActiveHour = true,
+                    expiresAt = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1),
+                    task = remoteChallengeDataSource.getRandomTask()
+                )
+
+                val createdChallenge = remoteChallengeDataSource.createChallenge(newChallengeDto)
+                launch {
+                    remoteRoomDataSource.updateRoomChallengeId(roomId, createdChallenge.id)
+                }
+                createdChallenge
+            }
+            roomMapper.toDomain(roomDto, challengeDto)
+        }
+    }*/
 
     override suspend fun deleteRoom(roomId: String) {
         remoteRoomDataSource.deleteRoom(roomId)

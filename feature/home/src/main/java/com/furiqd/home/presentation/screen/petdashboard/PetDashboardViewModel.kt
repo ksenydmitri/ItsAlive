@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.toRoute
 import com.furiqd.home.domain.repository.PetDashboardRepository
 import com.furiqd.home.presentation.navigation.PetDashboardDestination
+import com.furiqd.shared.domain.model.JointPet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class PetDashboardViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    petDashboardRepository: PetDashboardRepository
+    private val petDashboardRepository: PetDashboardRepository
 ) : ViewModel() {
 
     private val roomId: String = savedStateHandle.toRoute<PetDashboardDestination>().roomId
@@ -34,7 +35,12 @@ internal class PetDashboardViewModel @Inject constructor(
         when (event) {
             is PetDashboardEvent.FeedPet -> {
                 viewModelScope.launch {
-                    // Implement feeding action (e.g. increase energy/XP)
+                    petDashboardRepository.updatePetState(JointPet(
+                        id = uiState.value.pet?.id.orEmpty(),
+                        name = uiState.value.pet?.name.orEmpty(),
+                        level = uiState.value.pet?.level ?: 0,
+                        experience = uiState.value.pet?.experience ?: 0
+                    ))
                 }
             }
             is PetDashboardEvent.PlayWithPet -> {
