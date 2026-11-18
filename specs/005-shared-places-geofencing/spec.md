@@ -85,7 +85,7 @@ The app must enforce strict privacy boundaries for shared place data and remain 
 ### Key Entities *(include if feature involves data)*
 
 - **SharedPlace**: Represents a room-level place with a user-defined name, a selected map point, a fixed 100-meter geofence radius, and a room association. This feature owns the schema, validation, storage, and lifecycle of this entity.
-- **PairingRoom**: Already exists from feature `001-auth-and-pairing` and provides the room context for shared-place limits and room-scoped co-presence detection.
+- **PairingRoom**: Already exists from feature `001-authentication` and provides the room context for shared-place limits and room-scoped co-presence detection.
 - **JointPet**: Already exists from feature `002-pet-care-and-progression` and exposes the `Happiness` and `XP` reward APIs used by this feature.
 
 ## Success Criteria *(mandatory)*

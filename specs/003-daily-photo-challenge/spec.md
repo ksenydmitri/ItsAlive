@@ -101,7 +101,7 @@ After a user has uploaded their own photo, the app must support an explicit remi
 ### Key Entities *(include if feature involves data)*
 
 - **DailyChallenge**: Represents the single challenge instance for a room during a 24-hour cycle. Key attributes include the room reference, challenge day, prompt text, both photo slots, expiration timestamp, completion state, and acceptance status. Owner: `:feature:daily-photo-challenge` defines the lifecycle for this challenge entity and its acceptance rules.
-- **PairingRoom**: Already exists from feature `001-auth-and-pairing`. It supplies the room state, active challenge association, and streak status used by this feature.
+- **PairingRoom**: Already exists from feature `001-authentication`. It supplies the room state, active challenge association, and streak status used by this feature.
 - **JointPet**: Already exists and is managed by feature `002-pet-care-and-progression`. This feature triggers the shared pet reward updates for completed challenge actions.
 
 ## Success Criteria *(mandatory)*

@@ -2,6 +2,7 @@ package com.furiqd.personalisation.presentation.screen.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.furiqd.personalisation.domain.ProfileValidator
 import com.furiqd.personalisation.domain.SaveUserUseCase
 import com.furiqd.shared.domain.model.User
 import com.furiqd.shared.domain.repository.UserRepository
@@ -32,7 +33,8 @@ class OnboardingViewModel @Inject constructor(
         when (event) {
             is OnboardingEvent.NicknameChanged -> {
                 _uiState.update { currentState ->
-                    val isError = event.nickname.isNotEmpty() && event.nickname.length !in 2..15
+                    val isError = event.nickname.isNotEmpty() &&
+                        ProfileValidator.validateNickName(event.nickname).isFailure
                     validateAndCopy(
                         currentState.copy(
                             nickname = event.nickname,
@@ -44,7 +46,8 @@ class OnboardingViewModel @Inject constructor(
 
             is OnboardingEvent.NameChanged -> {
                 _uiState.update { currentState ->
-                    val isError = event.name.isNotEmpty() && event.name.length !in 2..15
+                    val isError = event.name.isNotEmpty() &&
+                        ProfileValidator.validateName(event.name).isFailure
                     validateAndCopy(
                         currentState.copy(
                             name = event.name,
@@ -76,8 +79,8 @@ class OnboardingViewModel @Inject constructor(
         }
     }
     private fun validateAndCopy(state: OnboardingState): OnboardingState {
-        val isNicknameValid = state.nickname.trim().length in 2..15
-        val isNameValid = state.name.trim().length in 2..15
+        val isNicknameValid = ProfileValidator.validateNickName(state.nickname).isSuccess
+        val isNameValid = ProfileValidator.validateName(state.name).isSuccess
         val hasAvatar = state.selectedCustomBytes != null
 
         return state.copy(

@@ -27,7 +27,7 @@ From the repository root:
 .\gradlew.bat :feature:auth:testDebugUnitTest :feature:personalisation:testDebugUnitTest :shared:testDebugUnitTest :core:network:testDebugUnitTest :core:local:testDebugUnitTest :app:testDebugUnitTest
 ```
 
-Run configured instrumented or emulator-backed tests separately. The repository's inspected Auth-related test files are template examples; successful task execution alone is not acceptance coverage.
+Focused unit tests cover auth use-case outcomes, auth form validation/submission state, profile validation and retry, logout cleanup, and selected session behavior. Run configured instrumented or emulator-backed provider tests separately; successful unit-test execution alone is not acceptance coverage.
 
 ## 4. Acceptance scenarios
 

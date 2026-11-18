@@ -27,6 +27,7 @@ import com.furiqd.shared.ui.elements.BackButton
 import com.furiqd.shared.ui.elements.ErrorSnackbar
 import com.furiqd.auth.presentation.elements.LoginWithGoogleButton
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper
+import com.furiqd.auth.presentation.helper.sanitizedMessage
 import com.furiqd.auth.presentation.helper.asString
 import kotlinx.coroutines.launch
 
@@ -219,8 +220,11 @@ fun SignUpRoute(
                             }
                             is AuthWithGoogleHelper.AuthUiResult.Failure -> {
                                 viewModel.onGoogleAuthFailed(
-                                    result.error.message ?: "Google Auth Failed"
+                                    result.error.sanitizedMessage()
                                 )
+                            }
+                            AuthWithGoogleHelper.AuthUiResult.Cancelled -> {
+                                viewModel.onGoogleAuthCancelled()
                             }
                         }
                     }

@@ -21,3 +21,7 @@ fun ValidationError.Password.asString(): String {
         ValidationError.Password.InvalidCharacters -> stringResource(R.string.error_password_invalid_characters)
     }
 }
+
+internal fun Throwable.sanitizedMessage(): String {
+    return "Authentication failed"
+}

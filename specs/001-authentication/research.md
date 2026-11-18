@@ -48,13 +48,13 @@ This research resolves technical planning questions where repository or provider
 
 **Evidence:** `feature/auth/build.gradle.kts`; `feature/auth/src/main/java/com/furiqd/auth/domain/usecase/AuthUseCases.kt`; `shared/src/main/java/com/furiqd/shared/domain/repository/UserRepository.kt`; `feature/personalisation/src/main/java/com/furiqd/personalisation/domain/SaveUserUseCase.kt`; `app/src/main/java/com/furiqd/itsalive/AppNavigation.kt`; target responsibility model in contract section 2.
 
-### 5. Treat profile policy as an implementation gate
+### 5. Preserve approved legacy-username compatibility
 
-**Decision:** Do not implement or claim approval of the name/username rules until the Draft's Section 4/12 conflicts and product decisions are resolved. Once approved, client feedback and authoritative persistence must enforce the same rule; username uniqueness must be atomic at the authoritative boundary.
+**Decision:** Existing users may continue using usernames that do not comply with the new username rules; legacy format alone must not block authentication or require a username change. Apply the new rules to username creation and changes, and require username changes to pass the approved format and uniqueness validation. This approves backward compatibility only; do not infer or change any format rule. Keep other name/username validation and authoritative persistence questions gated until resolved.
 
-**Rationale:** The spec contains detailed 2–24 name/username rules but also identifies the character, Unicode counting, ownership/timing, and related policy as requiring confirmation. Current Personalisation UI uses a different 2–15 check, and no server-side validation/uniqueness contract was found in the inspected sources.
+**Rationale:** Retaining legacy usernames avoids blocking existing users while applying new validation at the point a username is created or changed. The spec contains detailed name/username rules but still identifies format details, Unicode counting, and ownership/timing as requiring confirmation. Current Personalisation UI uses a different 2–15 check, and no server-side validation/uniqueness contract was found in the inspected sources.
 
-**Alternatives considered:** Adopting either the current 2–15 behavior or the Draft's detailed policy as approved without product confirmation is rejected.
+**Alternatives considered:** Retroactively rejecting legacy usernames, requiring existing users to rename before authentication, or adopting the current 2–15 behavior or other draft format details without approval are rejected.
 
 **Evidence:** `feature/personalisation/src/main/java/com/furiqd/personalisation/presentation/screen/onboarding/OnboardingViewModel.kt`; `feature/personalisation/src/main/java/com/furiqd/personalisation/domain/SaveUserUseCase.kt`; `core/network/src/main/java/com/furiqd/network/datasource/FirebaseAuthDataSource.kt`; specification §§4, 9.2, and 12; contract section 5.
 
@@ -74,7 +74,7 @@ The following remain exactly as gates, not research conclusions:
 
 - Enabled authentication methods and accepted identifiers.
 - Password, verification, recovery, account-linking, rate-limit, and approved user-facing copy policies.
-- Whether/when profile completion is required and the approved display-name/username format, Unicode behavior, and uniqueness policy.
+- Whether/when profile completion is required; remaining display-name/username format and Unicode rules; and authoritative validation/atomic uniqueness. Legacy-username backward compatibility is approved and is not an open decision.
 - Session lifetime, revocation, concurrent sessions, offline access, and account-switch behavior.
 - The neutral authenticated destination and any non-Firebase ID-token consumer.
 - Quantitative latency/measurement targets.

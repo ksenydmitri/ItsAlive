@@ -1,10 +1,10 @@
 package com.furiqd.auth.presentation.helper
 
 import android.content.Context
-import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.furiqd.auth.BuildConfig
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -15,12 +15,21 @@ class AuthWithGoogleHelper @Inject constructor() {
     sealed interface AuthUiResult {
         data class GoogleSuccess(val idToken: String) : AuthUiResult
         data class Failure(val error: Throwable) : AuthUiResult
+        data object Cancelled : AuthUiResult
+    }
+
+    companion object {
+        internal fun isCancellationException(error: Throwable): Boolean {
+            return error is NoCredentialException ||
+                error.message?.contains("cancel", true) == true ||
+                error.message?.contains("user_cancelled", true) == true
+        }
     }
 
     suspend fun launchAuthUi(context: Context): AuthUiResult {
         val credentialManager = CredentialManager.create(context)
 
-        if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isEmpty()){
+        if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isEmpty()) {
             return AuthUiResult.Failure(Exception("GOOGLE_WEB_CLIENT_ID isn't found"))
         }
 
@@ -47,11 +56,15 @@ class AuthWithGoogleHelper @Inject constructor() {
                     AuthUiResult.GoogleSuccess(googleIdTokenCredential.idToken)
                 }
                 else -> {
-                    AuthUiResult.Failure(Exception("Неизвестный тип данных: ${credential.type} (${credential::class.java.simpleName})"))
+                    AuthUiResult.Failure(Exception("Unknown Google credential type"))
                 }
             }
         } catch (e: GetCredentialException) {
-            AuthUiResult.Failure(e)
+            if (isCancellationException(e)) {
+                AuthUiResult.Cancelled
+            } else {
+                AuthUiResult.Failure(e)
+            }
         }
     }
 }

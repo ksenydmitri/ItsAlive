@@ -7,37 +7,28 @@
         "-y",
         "@upstash/context7-mcp"
       ]
+    },
+    "io.github.firebase/firebase-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firebase-tools",
+        "mcp"
+      ],
+      "env": {},
+      "enabled": true,
+      "trust": false,
+      "includeTools": [],
+      "excludeTools": []
+    },
+    "com.figma.mcp/mcp": {
+      "httpUrl": "https://mcp.figma.com/mcp",
+      "headers": {},
+      "timeout": -1,
+      "enabled": true,
+      "trust": false,
+      "includeTools": [],
+      "excludeTools": []
     }
-  },
-  "io.github.firebase/firebase-mcp": {
-    "command": "npx",
-    "args": [
-      "-y",
-      "firebase-tools",
-      "mcp"
-    ],
-    "env": {},
-    "enabled": true,
-    "trust": false,
-    "includeTools": [],
-    "excludeTools": []
-  },
-  "com.figma.mcp/mcp": {
-    "httpUrl": "https://mcp.figma.com/mcp",
-    "headers": {},
-    "timeout": -1,
-    "enabled": true,
-    "trust": false,
-    "includeTools": [],
-    "excludeTools": []
-  },
-  "github/github-mcp-server": {
-    "httpUrl": "https://api.githubcopilot.com/mcp/",
-    "headers": {},
-    "timeout": -1,
-    "enabled": true,
-    "trust": false,
-    "includeTools": [],
-    "excludeTools": []
   }
 }

@@ -84,8 +84,8 @@ The room should only show daily aggregate values, while raw activity logs remain
 ### Key Entities *(include if feature involves data)*
 
 - **DailyActivitySummary**: Represents the daily health totals for one user within a room on a given calendar day. Key fields include the user reference, room reference, date, `stepsCount`, `sleepMinutes`, `stepsGoalRewarded`, `sleepGoalRewarded`, and `lastSyncedAt`. This feature owns the lifecycle, validation, and privacy rules for this entity.
-- **PairingRoom**: Already exists from feature `001-auth-and-pairing`. It provides the room context and pair-level visibility rules for aggregated health data.
-- **User**: Already exists from feature `001-auth-and-pairing`. It provides the user identity and daily goal state used to apply and persist health rewards.
+- **PairingRoom**: Already exists from feature `001-authentication`. It provides the room context and pair-level visibility rules for aggregated health data.
+- **User**: Already exists from feature `001-authentication`. It provides the user identity and daily goal state used to apply and persist health rewards.
 - **JointPet**: Already exists from feature `002-pet-care-and-progression`. This feature calls the existing APIs to increase `Energy`, `XP`, and `foodInventory` when the daily step or sleep goals are met.
 
 ## Success Criteria *(mandatory)*

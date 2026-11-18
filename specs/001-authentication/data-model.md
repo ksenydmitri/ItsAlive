@@ -54,17 +54,57 @@ The exact remote uniqueness and reconciliation constraints require an authoritat
 
 ## State transitions
 
-Use behavior equivalent to the specification's states without requiring these exact names in code:
+The conceptual model distinguishes provider authentication, authentication operations, verification eligibility, and profile availability. These dimensions may change independently and do not require identical state names in implementation.
 
-1. `unauthenticated` → `submitting` on a user-initiated sign-in/sign-up attempt.
-2. `submitting` → `authenticated` only after provider confirmation, or → `verification_pending` when required by approved provider policy.
-3. External sign-in cancellation returns to the authentication screen without a false failure or session.
-4. `authenticated` → profile completion when an authenticated identity lacks a completed profile; profile completion is owned by Personalisation.
-5. Session restore may resolve to authenticated, unauthenticated/expired, recoverable offline, or recoverable profile-load state. Missing profile must not remain indefinitely indistinguishable as generic loading.
-6. Authenticated → `logging_out` → unauthenticated; late refresh/request responses must not restore the logged-out identity.
-7. Any failure/cancellation must not create an authenticated transition without provider confirmation.
+### Provider authentication
 
-Offline access and verification-pending semantics must follow approved product/provider policy. These transitions do not define room or post-authentication navigation behavior.
+1. `initializing` → `authenticated` when Firebase restores or confirms a signed-in identity.
+2. `initializing` → `unauthenticated` when Firebase resolves that no signed-in identity is available.
+3. `unauthenticated` → `authenticated` only after provider confirmation.
+4. `authenticated(uid)` → `unauthenticated` after successful local Firebase sign-out or when the SDK reports no active identity.
+5. Temporary network unavailability must not automatically be interpreted as proof that a previously restored identity is unauthenticated.
+
+### Authentication operations
+
+1. `idle` → `submitting` when a user-initiated sign-in or sign-up begins.
+2. `submitting` → `idle` after a successful operation and provider-state update.
+3. External provider cancellation returns to an idle state without being reported as an authentication failure.
+4. Provider errors produce safe, recoverable operation outcomes.
+5. Coroutine cancellation must propagate and must not create a false success or authenticated transition.
+6. Overlapping operations and late responses must not overwrite newer authentication state.
+
+### Verification and access eligibility
+
+1. Provider authentication and verification eligibility are independent.
+2. A Firebase-authenticated identity may still require email verification under the approved product policy.
+3. Verification requirements must not be represented as proof that no provider session exists.
+4. Exact access restrictions and verification flows remain subject to product approval.
+
+### Profile availability
+
+1. An authenticated identity may have a `loading`, `missing`, `incomplete`, `complete`, or `load_failed` profile state.
+2. A missing profile may lead to profile completion when required by approved product policy.
+3. A profile loading failure must not be treated as a missing profile.
+4. Profile completion and editing remain owned by Personalisation.
+5. Profile data must always be associated with the current canonical UID.
+
+### Session restoration and account switching
+
+1. Session restoration must distinguish provider authentication resolution from profile loading.
+2. A cached profile may support permitted offline presentation but cannot establish provider authentication.
+3. When the canonical UID changes, profile state must be reloaded or selected for the new identity.
+4. Pending asynchronous work for a previous identity must not overwrite the new identity's state.
+5. Missing profile data must not remain indefinitely indistinguishable from generic loading.
+
+### Logout
+
+1. `authenticated` → `logging_out` → `unauthenticated` during logout.
+2. Repeated logout requests must have defined, safe behavior.
+3. Late sign-in, refresh, or profile responses must not restore a logged-out identity.
+4. Local profile and credential cleanup must follow the approved data-isolation policy.
+5. Local Firebase sign-out and server-side refresh-token revocation are separate operations with distinct semantics.
+
+Offline access, verification requirements, and server-side revocation behavior remain subject to approved product/provider policy. These transitions do not define room or post-authentication navigation behavior.
 
 ## Validation constraints and approval status
 

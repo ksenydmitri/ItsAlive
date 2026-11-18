@@ -1,12 +1,12 @@
 package com.furiqd.auth.presentation.screens.signup
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.furiqd.auth.domain.usecase.AuthUseCases
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper.AuthUiResult
 import com.furiqd.auth.presentation.helper.InputValidator
+import com.furiqd.auth.presentation.helper.sanitizedMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,14 +26,12 @@ internal class SignUpViewModel @Inject constructor(
 
     private val _uiEffect = Channel<SignUpEffect>()
     val uiEffect = _uiEffect.receiveAsFlow()
+    private var isGoogleAuthLaunched = false
 
     fun handleEvent(event: SignUpEvent) {
         when (event) {
             is SignUpEvent.EmailChanged -> {
                 val error = InputValidator.validateEmail(event.email)
-                if (error != null) {
-                    Log.d("Sign Up","Email is not valid $error")
-                }
                 _uiState.update { state ->
                     val newState = state.copy(email = event.email, emailError = error)
                     newState.copy(isSignUpEnabled = newState.canSignUp())
@@ -41,9 +39,6 @@ internal class SignUpViewModel @Inject constructor(
             }
             is SignUpEvent.PasswordChanged -> {
                 val error = InputValidator.validatePassword(event.password)
-                if (error != null) {
-                    Log.d("Sign Up","Password is not valid $error")
-                }
                 _uiState.update { state ->
                     val newState = state.copy(password = event.password, passwordError = error)
                     newState.copy(isSignUpEnabled = newState.canSignUp())
@@ -51,16 +46,18 @@ internal class SignUpViewModel @Inject constructor(
             }
             is SignUpEvent.PrivacyChecked -> {
                 _uiState.update { state ->
-                    Log.d("Sign Up","Privacy checked")
                     val newState = state.copy(isPrivacyChecked = event.isChecked)
                     newState.copy(isSignUpEnabled = newState.canSignUp())
                 }
             }
             SignUpEvent.SignUpClicked -> {
+                if (_uiState.value.isLoading || !_uiState.value.isSignUpEnabled) return
                 _uiState.update { it.copy(isLoading = true) }
                 signUpWithEmail()
             }
             SignUpEvent.GoogleClicked -> {
+                if (_uiState.value.isLoading || isGoogleAuthLaunched) return
+                isGoogleAuthLaunched = true
                 viewModelScope.launch { _uiEffect.send(SignUpEffect.LaunchGoogleAuth) }
             }
             SignUpEvent.BackClicked -> {
@@ -73,7 +70,6 @@ internal class SignUpViewModel @Inject constructor(
     }
 
     private fun signUpWithEmail() {
-        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             val result = authUseCases.signUpWithEmailAndPassword(
                 email = _uiState.value.email,
@@ -82,15 +78,16 @@ internal class SignUpViewModel @Inject constructor(
             result.onSuccess { isOnboardingCompleted ->
                 _uiState.update { it.copy(isLoading = false) }
                 _uiEffect.send(SignUpEffect.NavigateToWelcome(isOnboardingCompleted))
-                Log.d("Sign Up","Sign up success")
             }.onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                _uiEffect.send(SignUpEffect.ShowError(error.message ?: "Неверный логин или пароль"))
+                _uiEffect.send(SignUpEffect.ShowError(error.sanitizedMessage()))
             }
         }
     }
 
     fun onGoogleTokenReceived(idToken: String) {
+        if (_uiState.value.isLoading) return
+        isGoogleAuthLaunched = false
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             authUseCases.signInWithGoogle(idToken)
@@ -100,16 +97,21 @@ internal class SignUpViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(isLoading = false) }
-                    _uiEffect.send(SignUpEffect.ShowError(error.message ?: "Unknown error"))
+                    _uiEffect.send(SignUpEffect.ShowError(error.sanitizedMessage()))
                 }
         }
     }
 
     fun onGoogleAuthFailed(errorMessage: String) {
+        isGoogleAuthLaunched = false
         _uiState.update { it.copy(isLoading = false) }
         viewModelScope.launch {
             _uiEffect.send(SignUpEffect.ShowError(errorMessage))
         }
+    }
+
+    fun onGoogleAuthCancelled() {
+        isGoogleAuthLaunched = false
     }
 
     private fun SignUpState.canSignUp(): Boolean {
