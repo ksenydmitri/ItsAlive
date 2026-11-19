@@ -27,8 +27,8 @@
 - [X] **T005 [P]** Test sign-up required-field validation, loading, duplicate taps, and safe provider failures in `feature/auth/src/test/java/com/furiqd/auth/presentation/screens/signup/SignUpViewModelTest.kt`.
 - [X] **T006 [P]** Test provider-confirmed registration, profile-save failure, duplicate submissions, uncertain retries, and recovery without a second account in `feature/auth/src/test/java/com/furiqd/auth/domain/usecase/SignUpUseCaseTest.kt`.
 - [X] **T007 [P]** Test profile-completion retry for the same identity in `feature/personalisation/src/test/java/com/furiqd/personalisation/domain/SaveUserUseCaseTest.kt` and `feature/personalisation/src/test/java/com/furiqd/personalisation/presentation/screen/onboarding/OnboardingViewModelTest.kt`.
-- [ ] **T008** Implement approved registration methods, provider-confirmed success, duplicate-submit prevention, and safe reconciliation of uncertain outcomes in the sign-up ViewModel, auth use cases, `AuthWithFirebaseAuthenticator.kt`, and `FirebaseAuthDataSource.kt`.
-- [ ] **T009** After profile requirements and completion timing are confirmed, route users with an incomplete required profile to Personalisation and support retry without registering again. Update `AppNavigation.kt`, `OnboardingViewModel.kt`, and `SaveUserUseCase.kt`.
+- [x] **T008** Implement approved registration methods, provider-confirmed success, duplicate-submit prevention, and safe reconciliation of uncertain outcomes in the sign-up ViewModel, auth use cases, `AuthWithFirebaseAuthenticator.kt`, and `FirebaseAuthDataSource.kt`.
+- [x] **T009** After profile requirements and completion timing are confirmed, route users with an incomplete required profile to Personalisation and support retry without registering again. Update `AppNavigation.kt`, `OnboardingViewModel.kt`, and `SaveUserUseCase.kt`.
 - [X] **T010a [P]** Test approved `name` normalization and validation: NFC, trimming, whitespace collapsing, 2–30 Unicode code points, permitted letters/separators, and rejected characters/placement.
 - [X] **T010b [P]** Test `nickName` normalization and validation: 2–24 characters, lowercase, allowed Latin letters/digits/`_`/`.`, and rejection of unsupported characters. Test legacy usernames remain accepted for sign-in.
 
@@ -36,16 +36,16 @@
 
 - [x] **T011 [P]** Test missing/malformed fields, loading, duplicate submissions, generic credential errors, and recoverable network failure in `feature/auth/src/test/java/com/furiqd/auth/presentation/screens/signin/SignInViewModelTest.kt`.
 - [x] **T012 [P]** Test provider-confirmed login, rejection without session creation, and sign-in with legacy-format usernames in `feature/auth/src/test/java/com/furiqd/auth/domain/usecase/SignInUseCaseTest.kt`.
-- [ ] **T013** Implement login using approved methods, including `nickName` as a login identifier; expose safe outcomes and never authenticate on provider rejection. Update the sign-in ViewModel, auth use cases, and `AuthWithFirebaseAuthenticator.kt`.
-- [ ] **T014** Route confirmed login using profile availability and the approved neutral destination in `app/src/main/java/com/furiqd/itsalive/AppNavigation.kt`.
+- [x] **T013** Implement login using approved methods, including `nickName` as a login identifier; expose safe outcomes and never authenticate on provider rejection. Update the sign-in ViewModel, auth use cases, and `AuthWithFirebaseAuthenticator.kt`.
+- [x] **T014** Route confirmed login using profile availability and the approved neutral destination in `app/src/main/java/com/furiqd/itsalive/AppNavigation.kt`.
 
 ## Phase 4: External sign-in (US3, conditional)
 
 Proceed only if the provider is explicitly enabled.
 
-- [ ] **T015 [P]** Test Google-to-Firebase credential exchange, Firebase identity/token mapping, and safe cancellation in `GoogleCredentialMappingTest.kt` and `GoogleSignInViewModelTest.kt`.
-- [ ] **T016** Map Google sign-in results to the Firebase UID and Firebase-issued `AuthResult.token`; do not treat the Google ID token as the Firebase token. Update `AuthRepositoryImpl.kt` and `AuthUseCases.kt`.
-- [ ] **T017** Treat Credential Manager cancellation as an idle return; map denial/provider errors safely in `AuthWithGoogleHelper.kt` and the sign-in ViewModel.
+- [x] **T015 [P]** Test Google-to-Firebase credential exchange, Firebase identity/token mapping, and safe cancellation in `GoogleCredentialMappingTest.kt` and `GoogleSignInViewModelTest.kt`.
+- [x] **T016** Map Google sign-in results to the Firebase UID and Firebase-issued `AuthResult.token`; do not treat the Google ID token as the Firebase token. Update `AuthRepositoryImpl.kt` and `AuthUseCases.kt`.
+- [x] **T017** Treat Credential Manager cancellation as an idle return; map denial/provider errors safely in `AuthWithGoogleHelper.kt` and the sign-in ViewModel.
 
 ## Phase 5: Password recovery (US4, conditional)
 
@@ -56,8 +56,8 @@ Proceed only if password authentication and recovery are approved and enabled.
 
 ## Phase 6: Session lifecycle (US5)
 
-- [ ] **T020 [P]** Test provider session present/absent, profile missing versus load failure, account switching, UID-scoped cache isolation, and stale responses in `UserRepositorySessionTest.kt`. Test offline behavior only against an approved policy.
-- [ ] **T021** Restore provider session separately from profile loading. Represent missing, incomplete, and failed profiles distinctly; scope updates to the current UID and discard stale responses. Implement in `UserRepositoryImpl.kt` and `MainViewModel.kt`. Apply offline behavior only after approval.
+- [x] **T020 [P]** Test provider session present/absent, profile missing versus load failure, account switching, UID-scoped cache isolation, and stale responses in `UserRepositorySessionTest.kt`. Test offline behavior only against an approved policy.
+- [x] **T021** Restore provider session separately from profile loading. Represent missing, incomplete, and failed profiles distinctly; scope updates to the current UID and discard stale responses. Implement in `UserRepositoryImpl.kt` and `MainViewModel.kt`. Apply offline behavior only after approval.
 - [x] **T022** Audit `TokenRepository`/`accessToken` consumers. No approved non-Firebase consumer was found; removed app-level Auth token persistence and kept the encrypted local adapter only to clear legacy values on logout.
 
 ## Phase 7: Logout (US6)
@@ -65,11 +65,11 @@ Proceed only if password authentication and recovery are approved and enabled.
 - [x] **T023 [P]** Test local cleanup after provider sign-out failure, idempotent logout, UID cache isolation, and stale work not restoring the prior identity in `UserRepositoryLogoutTest.kt`.
 - [x] **T024 [P]** Test that `LogoutUseCase` propagates `UserRepository.logOut()` results in `LogoutUseCaseTest.kt`.
 - [x] **T025** Ensure local sign-out and UID-scoped cleanup complete even if provider sign-out fails; propagate the repository result. Handle app-managed tokens according to T022. Do not add server-side revocation here. Update `UserRepositoryImpl.kt` and `LogoutUseCase.kt`.
-- [ ] **T026** Prevent late auth/profile responses from restoring a logged-out identity and gate protected navigation on current provider state. Update `UserRepositoryImpl.kt`, `MainViewModel.kt`, and `AppNavigation.kt`.
+- [x] **T026** Prevent late auth/profile responses from restoring a logged-out identity and gate protected navigation on current provider state. Update `UserRepositoryImpl.kt`, `MainViewModel.kt`, and `AppNavigation.kt`.
 
 ## Phase 8: Cross-cutting checks
 
-- [ ] **T027 [P]** Add app-boundary navigation tests for the approved destination and required profile-completion route in `AuthenticationNavigationTest.kt`. Do not depend on Rooms, Pets, or Pairing internals; do not add an unverified UI-test framework.
+- [x] **T027 [P]** Add app-boundary navigation tests for the approved destination and required profile-completion route in `AuthenticationNavigationTest.kt`. Do not depend on Rooms, Pets, or Pairing internals; do not add an unverified UI-test framework.
 - [x] **T028** Audit auth/session UI and diagnostics for raw provider errors, credentials, tokens, or personal data; fix findings and add focused tests.
 - [x] **T029** Update `contracts/feature-contracts.md` with observed behavior, evidence paths, and statuses. Do not change `spec.md` or decide open product questions.
 - [x] **T030** Run focused builds/tests listed in `quickstart.md`; record only commands and outcomes actually observed. Debug assemble and all listed unit-test tasks passed in this run.

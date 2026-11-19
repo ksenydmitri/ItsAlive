@@ -29,6 +29,27 @@ class OnboardingViewModel @Inject constructor(
     private val _effect = Channel<OnboardingEffect>()
     val effect = _effect.receiveAsFlow()
 
+    init {
+        loadExistingProfile()
+    }
+
+    private fun loadExistingProfile() {
+        viewModelScope.launch {
+            val currentUser = userRepository.getUser()
+            if (currentUser != null && (currentUser.name.isNotBlank() || !currentUser.nickName.isNullOrBlank())) {
+                _uiState.update { state ->
+                    val newName = if (state.name.isBlank()) currentUser.name else state.name
+                    val newNickname = if (state.nickname.isBlank()) currentUser.nickName.orEmpty() else state.nickname
+                    val updatedState = state.copy(
+                        name = newName,
+                        nickname = newNickname
+                    )
+                    validateAndCopy(updatedState)
+                }
+            }
+        }
+    }
+
     fun handleEvent(event: OnboardingEvent) {
         when (event) {
             is OnboardingEvent.NicknameChanged -> {
