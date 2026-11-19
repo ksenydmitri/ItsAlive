@@ -1,6 +1,7 @@
 package com.furiqd.auth.presentation.screens.signin
 
 import com.furiqd.auth.domain.usecase.AuthUseCases
+import com.furiqd.auth.domain.usecase.SendPasswordResetEmailUseCase
 import com.furiqd.auth.domain.usecase.SignInWithEmailAndPasswordUseCase
 import com.furiqd.auth.domain.usecase.SignInWithGoogleUseCase
 import com.furiqd.auth.domain.usecase.SignUpWithEmailAndPasswordUseCase
@@ -148,7 +149,8 @@ class SignInViewModelTest {
                 authRepository,
                 userRepository
             ),
-            signInWithGoogle = SignInWithGoogleUseCase(authRepository, userRepository)
+            signInWithGoogle = SignInWithGoogleUseCase(authRepository, userRepository),
+            sendPasswordResetEmail = SendPasswordResetEmailUseCase(authRepository)
         )
         return SignInViewModel(useCases, AuthWithGoogleHelper())
     }

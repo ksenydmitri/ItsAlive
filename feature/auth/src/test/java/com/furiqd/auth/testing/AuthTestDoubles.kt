@@ -14,7 +14,8 @@ internal class FakeAuthRepository(
     var signUpResult: suspend (String, String) -> Result<Unit> = { _, _ -> Result.success(Unit) },
     var googleSignInResult: suspend (String) -> Result<AuthResult> = {
         Result.failure(UnsupportedOperationException())
-    }
+    },
+    var sendPasswordResetEmailResult: suspend (String) -> Result<Unit> = { Result.success(Unit) }
 ) : AuthRepository {
     var signInCalls = 0
         private set
@@ -36,6 +37,10 @@ internal class FakeAuthRepository(
     override suspend fun signInWithGoogle(idToken: String): Result<AuthResult> {
         googleSignInCalls++
         return googleSignInResult(idToken)
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return sendPasswordResetEmailResult(email)
     }
 }
 

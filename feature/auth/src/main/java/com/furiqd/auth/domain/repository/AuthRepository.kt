@@ -6,4 +6,5 @@ internal interface AuthRepository {
     suspend fun signInWithEmailAndPassword(email: String, password: String): Result<Unit>
     suspend fun signUpWithEmailAndPassword(email: String, password: String): Result<Unit>
     suspend fun signInWithGoogle(idToken: String): Result<AuthResult>
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
 }

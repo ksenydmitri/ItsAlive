@@ -51,8 +51,8 @@ Proceed only if the provider is explicitly enabled.
 
 Proceed only if password authentication and recovery are approved and enabled.
 
-- [ ] **T018 [P]** Test neutral recovery confirmation, malformed identifiers, rate limits/provider failures, and no account-existence disclosure in `PasswordRecoveryUseCaseTest.kt`.
-- [ ] **T019** Implement provider-backed recovery in the existing placeholder route in `AuthGraph.kt`, auth use cases, and `AuthWithFirebaseAuthenticator.kt`. First verify whether an existing screen can host the flow. Do not invent provider policy or recovery copy.
+- [x] **T018 [P]** Test neutral recovery confirmation, malformed identifiers, rate limits/provider failures, and no account-existence disclosure in `PasswordRecoveryUseCaseTest.kt`.
+- [x] **T019** Implement provider-backed recovery in the existing placeholder route in `AuthGraph.kt`, auth use cases, and `AuthWithFirebaseAuthenticator.kt`. First verify whether an existing screen can host the flow. Do not invent provider policy or recovery copy.
 
 ## Phase 6: Session lifecycle (US5)
 

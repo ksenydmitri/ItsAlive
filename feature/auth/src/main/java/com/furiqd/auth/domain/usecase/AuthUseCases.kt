@@ -85,8 +85,21 @@ internal class SignInWithGoogleUseCase @Inject constructor(
     }
 }
 
+internal class SendPasswordResetEmailUseCase @Inject constructor(
+    private val authRepository: AuthRepository
+) {
+    suspend operator fun invoke(email: String): Result<Unit> = try {
+        authRepository.sendPasswordResetEmail(email.trim())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
+
 internal data class AuthUseCases @Inject constructor(
     val signInWithEmailAndPassword: SignInWithEmailAndPasswordUseCase,
     val signUpWithEmailAndPassword: SignUpWithEmailAndPasswordUseCase,
-    val signInWithGoogle: SignInWithGoogleUseCase
+    val signInWithGoogle: SignInWithGoogleUseCase,
+    val sendPasswordResetEmail: SendPasswordResetEmailUseCase
 )

@@ -95,6 +95,9 @@ private class FakeAuthRepository(
 
     override suspend fun signInWithGoogle(idToken: String): Result<AuthResult> =
         Result.failure(UnsupportedOperationException())
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> =
+        Result.failure(UnsupportedOperationException())
 }
 
 private class FakeUserRepository(

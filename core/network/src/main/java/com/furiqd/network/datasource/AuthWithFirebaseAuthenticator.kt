@@ -55,6 +55,17 @@ class AuthWithFirebaseAuthenticator @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
 
 internal suspend fun registerOrReconcile(

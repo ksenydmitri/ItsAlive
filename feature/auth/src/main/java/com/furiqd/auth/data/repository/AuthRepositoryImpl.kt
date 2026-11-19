@@ -40,4 +40,7 @@ internal class AuthRepositoryImpl @Inject constructor(
             Result.failure(error)
         }
     }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> =
+        authWithFirebaseAuthenticator.sendPasswordResetEmail(email)
 }
