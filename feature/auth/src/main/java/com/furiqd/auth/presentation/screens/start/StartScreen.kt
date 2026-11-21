@@ -17,12 +17,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,11 +36,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.furiqd.auth.R
+import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper
+import com.furiqd.auth.presentation.helper.sanitizedMessage
 import com.furiqd.shared.ui.theme.ItsAliveTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun StartScreen(
+    state: StartState,
     onEvent: (StartEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -48,112 +59,27 @@ fun StartScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(24.dp))
-
         Text(
-            text = "It's Alive!",
+            text = stringResource(R.string.auth_start_title),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 2.sp,
             textAlign = TextAlign.Center
         )
-
-        Box(
+        StartHeader(
             modifier = Modifier
+                .weight(1f)
                 .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(200.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(24.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "🦕\n[Pixel Art Place]",
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(R.string.auth_start_subtitle),
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = stringResource(R.string.auth_start_description),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                fontSize = 15.sp,
-                textAlign = TextAlign.Center,
-                lineHeight = 22.sp
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            Button(
-                onClick = { onEvent(StartEvent.SignUpClicked) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.auth_start_btn_signup),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.auth_start_already_have_account),
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 0.5.sp
-                )
-                TextButton(
-                    onClick = { onEvent(StartEvent.SignInClicked)},
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.auth_start_btn_login),
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.5.sp
-                    )
-                }
-            }
-        }
+                .padding(vertical = 24.dp)
+        )
+        StartActions(
+            onGoogleClick = { onEvent(StartEvent.GoogleClicked) },
+            onEmailSignInClick = { onEvent(StartEvent.SignInClicked) },
+            onSignUpClick = { onEvent(StartEvent.SignUpClicked) },
+            isLoading = state.isLoading,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
     }
 }
 
@@ -161,23 +87,51 @@ fun StartScreen(
 fun StartRoute(
     onNavigateToSignUp: () -> Unit,
     onNavigateToLogin: () -> Unit,
+    onNavigateToWelcome: (Boolean) -> Unit,
 ){
     val viewModel: StartViewModel = hiltViewModel()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val authHelper = remember { AuthWithGoogleHelper() }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 StartEffect.NavigateToSignUp -> onNavigateToSignUp()
                 StartEffect.NavigateToSignIn -> onNavigateToLogin()
-                is StartEffect.ShowError -> { /* Показать Snackbar */
+                is StartEffect.NavigateToWelcome -> onNavigateToWelcome(effect.isOnboardingCompleted)
+                StartEffect.LaunchGoogleAuth -> scope.launch {
+                    when (val result = authHelper.launchAuthUi(context)) {
+                        is AuthWithGoogleHelper.AuthUiResult.GoogleSuccess ->
+                            viewModel.onGoogleTokenReceived(result.idToken)
+                        is AuthWithGoogleHelper.AuthUiResult.Failure ->
+                            viewModel.onGoogleAuthFailed(result.error.sanitizedMessage())
+                        AuthWithGoogleHelper.AuthUiResult.Cancelled ->
+                            viewModel.onGoogleAuthCancelled()
+                    }
                 }
+                is StartEffect.ShowError ->
+                    snackbarHostState.showSnackbar(effect.message, withDismissAction = true)
             }
-
         }
     }
-    StartScreen(
-        onEvent = viewModel::handleEvent,
-        modifier = Modifier.fillMaxSize()
-    )
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        StartScreen(
+            state = state,
+            onEvent = viewModel::handleEvent,
+            modifier = Modifier.fillMaxSize()
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(16.dp)
+        )
+    }
 }
 
 @Preview(name = "Dark Theme", showBackground = true, device = "spec:width=411dp,height=891dp")
@@ -185,6 +139,7 @@ fun StartRoute(
 fun PreviewStartScreenDark() {
     ItsAliveTheme(darkTheme = true) {
         StartScreen(
+            state = StartState(),
             onEvent = {},
             modifier = Modifier.fillMaxSize()
         )
@@ -196,6 +151,7 @@ fun PreviewStartScreenDark() {
 fun PreviewStartScreenLight() {
     ItsAliveTheme(darkTheme = false) {
         StartScreen(
+            state = StartState(),
             onEvent = {},
             modifier = Modifier.fillMaxSize()
         )

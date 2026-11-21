@@ -23,6 +23,10 @@ internal class FakeAuthRepository(
         private set
     var googleSignInCalls = 0
         private set
+    var passwordResetCalls = 0
+        private set
+    var lastResetEmail: String? = null
+        private set
 
     override suspend fun signInWithEmailAndPassword(email: String, password: String): Result<Unit> {
         signInCalls++
@@ -40,6 +44,8 @@ internal class FakeAuthRepository(
     }
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        passwordResetCalls++
+        lastResetEmail = email
         return sendPasswordResetEmailResult(email)
     }
 }
@@ -69,4 +75,5 @@ internal class FakeUserRepository(
     }
     override suspend fun getUserById(userId: String): User? = null
     override suspend fun updateFcmToken(token: String): Result<Unit> = Result.success(Unit)
+    override suspend fun isNickNameAvailable(nickName: String): Boolean = true
 }

@@ -40,7 +40,11 @@ internal class SignUpViewModel @Inject constructor(
             is SignUpEvent.PasswordChanged -> {
                 val error = InputValidator.validatePassword(event.password)
                 _uiState.update { state ->
-                    val newState = state.copy(password = event.password, passwordError = error)
+                    val newState = state.copy(
+                        password = event.password,
+                        passwordError = error,
+                        passwordStrength = InputValidator.passwordStrength(event.password)
+                    )
                     newState.copy(isSignUpEnabled = newState.canSignUp())
                 }
             }
@@ -52,7 +56,7 @@ internal class SignUpViewModel @Inject constructor(
             }
             SignUpEvent.SignUpClicked -> {
                 if (_uiState.value.isLoading || !_uiState.value.isSignUpEnabled) return
-                _uiState.update { it.copy(isLoading = true) }
+                setLoading(true)
                 signUpWithEmail()
             }
             SignUpEvent.GoogleClicked -> {
@@ -76,10 +80,10 @@ internal class SignUpViewModel @Inject constructor(
                 password = _uiState.value.password
             )
             result.onSuccess { isOnboardingCompleted ->
-                _uiState.update { it.copy(isLoading = false) }
+                setLoading(false)
                 _uiEffect.send(SignUpEffect.NavigateToWelcome(isOnboardingCompleted))
             }.onFailure { error ->
-                _uiState.update { it.copy(isLoading = false) }
+                setLoading(false)
                 _uiEffect.send(SignUpEffect.ShowError(error.sanitizedMessage()))
             }
         }
@@ -88,15 +92,15 @@ internal class SignUpViewModel @Inject constructor(
     fun onGoogleTokenReceived(idToken: String) {
         if (_uiState.value.isLoading) return
         isGoogleAuthLaunched = false
-        _uiState.update { it.copy(isLoading = true) }
+        setLoading(true)
         viewModelScope.launch {
             authUseCases.signInWithGoogle(idToken)
                 .onSuccess { isOnboardingCompleted ->
-                    _uiState.update { it.copy(isLoading = false) }
+                    setLoading(false)
                     _uiEffect.send(SignUpEffect.NavigateToWelcome(isOnboardingCompleted))
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false) }
+                    setLoading(false)
                     _uiEffect.send(SignUpEffect.ShowError(error.sanitizedMessage()))
                 }
         }
@@ -104,7 +108,7 @@ internal class SignUpViewModel @Inject constructor(
 
     fun onGoogleAuthFailed(errorMessage: String) {
         isGoogleAuthLaunched = false
-        _uiState.update { it.copy(isLoading = false) }
+        setLoading(false)
         viewModelScope.launch {
             _uiEffect.send(SignUpEffect.ShowError(errorMessage))
         }
@@ -119,6 +123,14 @@ internal class SignUpViewModel @Inject constructor(
                 emailError == null &&
                 password.isNotBlank() &&
                 passwordError == null &&
-                isPrivacyChecked
+                isPrivacyChecked &&
+                !isLoading
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        _uiState.update { state ->
+            val updated = state.copy(isLoading = isLoading)
+            updated.copy(isSignUpEnabled = updated.canSignUp())
+        }
     }
 }

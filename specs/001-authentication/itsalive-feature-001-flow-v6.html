@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ItsAlive · Feature 001: Auth, Onboarding, Pairing & Edge Cases</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --coral: #ff6b6b;
+      --coral-deep: #e8555c;
+      --coral-soft: #fff0ef;
+      --coral-glow: rgba(255, 107, 107, 0.34);
+      --mint: #4ecdc4;
+      --mint-deep: #258a83;
+      --mint-soft: #e7f9f7;
+      --mint-glow: rgba(78, 205, 196, 0.32);
+      --amber: #eab308;
+      --amber-soft: #fef9e7;
+      --amber-deep: #9a6700;
+      --ink: #222026;
+      --muted: #76727d;
+      --line: #ece9ef;
+      --surface: #ffffff;
+      --background: #fafafa;
+      --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Keyframe Animations */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
+    }
+    @keyframes pulseHalo {
+      0%, 100% { transform: scale(1); opacity: 0.65; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-120%) skewX(-20deg); }
+      60%, 100% { transform: translateX(220%) skewX(-20deg); }
+    }
+    @keyframes flowDash {
+      to { stroke-dashoffset: -24; }
+    }
+    @keyframes eggWobble {
+      0%, 100% { transform: rotate(0deg); }
+      20% { transform: rotate(-4deg); }
+      40% { transform: rotate(4deg); }
+      60% { transform: rotate(-2deg); }
+      80% { transform: rotate(2deg); }
+    }
+    @keyframes blinkCursor {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(34, 32, 38, .028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 32, 38, .028) 1px, transparent 1px),
+        radial-gradient(circle at 10% 4%, rgba(255, 107, 107, .14), transparent 460px),
+        radial-gradient(circle at 90% 38%, rgba(78, 205, 196, .14), transparent 480px),
+        radial-gradient(circle at 50% 88%, rgba(255, 230, 109, .14), transparent 520px),
+        #f6f5f8;
+      background-size: 32px 32px, 32px 32px, auto, auto, auto, auto;
+      padding: 36px clamp(20px, 4vw, 56px) 84px;
+    }
+
+    .container { max-width: 1740px; margin: 0 auto; }
+
+    /* Sticky Top Navigation */
+    .feature-nav {
+      position: sticky;
+      top: 14px;
+      z-index: 100;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 16px;
+      margin-bottom: 32px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(34, 32, 38, 0.08);
+      border-radius: 22px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 36px rgba(34, 32, 38, 0.08);
+    }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .feature-nav a {
+      text-decoration: none;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--ink);
+      padding: 8px 14px;
+      border-radius: 99px;
+      background: var(--background);
+      border: 1px solid var(--line);
+      transition: all 0.2s cubic-bezier(.22,1,.36,1);
+    }
+    .feature-nav a:hover {
+      background: var(--coral-soft);
+      color: var(--coral-deep);
+      border-color: rgba(255, 107, 107, 0.35);
+      transform: translateY(-1px);
+    }
+    .nav-pill-badge {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--mint-deep);
+      background: var(--mint-soft);
+      padding: 6px 12px;
+      border-radius: 99px;
+    }
+
+    /* Map Header */
+    .map-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 34px;
+    }
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      margin-bottom: 14px;
+      color: var(--coral-deep);
+      background: var(--coral-soft);
+      border: 1px solid rgba(255, 107, 107, 0.2);
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .map-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 50px);
+      line-height: 1.05;
+      letter-spacing: -.03em;
+      font-weight: 800;
+    }
+    .map-header p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .legend-card {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      padding: 18px 22px;
+      border: 1px solid rgba(34, 32, 38, .08);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 14px 36px rgba(34, 32, 38, .05);
+    }
+    .legend-group { display: grid; gap: 8px; }
+    .legend-title { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #9e9aa3; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: #5b5761; }
+    .swatch { width: 14px; height: 14px; border-radius: 5px; border: 1px solid rgba(0,0,0,.08); }
+
+    /* Flow Sections */
+    .flow-section {
+      background: rgba(255, 255, 255, .82);
+      border: 1px solid rgba(34, 32, 38, .08);
+      border-radius: 36px;
+      padding: 34px;
+      margin-bottom: 38px;
+      box-shadow: 0 24px 70px rgba(34, 32, 38, .055);
+      backdrop-filter: blur(14px);
+      scroll-margin-top: 78px;
+    }
+    .section-badge {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px dashed rgba(34, 32, 38, .14);
+    }
+    .section-badge h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .feature-tag {
+      font-family: monospace;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--coral-deep);
+      background: var(--coral-soft);
+      padding: 5px 11px;
+      border-radius: 10px;
+    }
+    .feature-tag.mint { color: var(--mint-deep); background: var(--mint-soft); }
+    .feature-tag.amber { color: var(--amber-deep); background: var(--amber-soft); }
+    .section-badge .flow-summary { font-size: 12px; font-weight: 700; color: var(--muted); }
+
+    /* Business Logic Strip */
+    .logic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .logic-card {
+      background: #ffffff;
+      border: 1px solid rgba(34, 32, 38, 0.07);
+      border-left: 4px solid var(--mint);
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 22px rgba(34, 32, 38, 0.035);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .logic-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(34, 32, 38, 0.06); }
+    .logic-card.coral { border-left-color: var(--coral); }
+    .logic-card.amber { border-left-color: var(--amber); }
+    .logic-card h4 { font-size: 12.5px; font-weight: 800; margin-bottom: 4px; color: var(--ink); }
+    .logic-card p { font-size: 11.5px; line-height: 1.48; color: var(--muted); }
+    .logic-card code {
+      font-family: monospace;
+      font-size: 10.5px;
+      background: #f3f1f6;
+      padding: 1px 6px;
+      border-radius: 6px;
+      color: var(--ink);
+    }
+
+    /* Screens Row */
+    .screens-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 16px;
+    }
+
+    /* Node Wrapper */
+    .node-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 268px;
+    }
+    .node-meta {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid rgba(34, 32, 38, .08);
+      border-radius: 20px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 28px rgba(34, 32, 38, .05);
+      position: relative;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .node-wrapper:hover .node-meta {
+      border-color: rgba(255, 107, 107, 0.35);
+      box-shadow: 0 14px 34px rgba(255, 107, 107, 0.12);
+    }
+    .node-wrapper:hover .node-meta.mint {
+      border-color: rgba(78, 205, 196, 0.45);
+      box-shadow: 0 14px 34px rgba(78, 205, 196, 0.14);
+    }
+    .node-meta::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 18px;
+      width: 7px;
+      height: 26px;
+      border-radius: 99px;
+      background: var(--coral);
+    }
+    .node-meta.mint::before { background: var(--mint); }
+    .node-meta.amber::before { background: var(--amber); }
+    .node-meta.dark::before { background: #222026; }
+
+    .node-meta-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      gap: 6px;
+    }
+    .node-id {
+      font-size: 9px;
+      font-weight: 800;
+      color: white;
+      background: var(--coral);
+      padding: 2px 8px;
+      border-radius: 7px;
+    }
+    .node-meta.mint .node-id { background: var(--mint-deep); }
+    .node-meta.amber .node-id { background: var(--amber-deep); }
+    .node-meta.dark .node-id { background: #222026; }
+
+    .node-route {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--mint-deep);
+      background: var(--mint-soft);
+      padding: 2px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 155px;
+    }
+    .node-meta h3 { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+    .node-meta p { font-size: 10.5px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+
+    /* Animated Connector Arrow */
+    .flow-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      margin-top: 56px;
+      min-width: 56px;
+      max-width: 78px;
+      gap: 6px;
+    }
+    .flow-arrow span {
+      font-size: 8.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      text-align: center;
+      background: white;
+      padding: 4px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--line);
+      line-height: 1.25;
+      box-shadow: 0 4px 10px rgba(34,32,38,0.04);
+    }
+    .flow-arrow svg {
+      width: 54px;
+      height: 14px;
+      overflow: visible;
+    }
+    .flow-dash-line {
+      stroke-dasharray: 5 4;
+      animation: flowDash 1.2s linear infinite;
+    }
+
+    /* Scaled Phone Frame (393x852 scaled to 0.68 -> 268x580) */
+    .phone-viewport {
+      width: 268px;
+      height: 580px;
+      border-radius: 30px;
+      box-shadow: 0 22px 54px rgba(34, 32, 38, .15), 0 4px 12px rgba(34, 32, 38, .07);
+      overflow: hidden;
+      position: relative;
+      background: var(--background);
+      border: 1.5px solid rgba(34, 32, 38, .11);
+      transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease, border-color .3s ease;
+    }
+    .node-wrapper:hover .phone-viewport {
+      transform: translateY(-6px);
+      border-color: rgba(255, 107, 107, 0.45);
+      box-shadow: 0 30px 68px rgba(34, 32, 38, .20), 0 0 28px rgba(255, 107, 107, .16);
+    }
+    .node-wrapper:hover .phone-viewport.mint-glow {
+      border-color: rgba(78, 205, 196, 0.55);
+      box-shadow: 0 30px 68px rgba(34, 32, 38, .20), 0 0 28px rgba(78, 205, 196, .18);
+    }
+    .phone-screen {
+      width: 393px;
+      height: 852px;
+      transform: scale(0.6819);
+      transform-origin: top left;
+      position: relative;
+      overflow: hidden;
+      background: var(--background);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status & Gesture Bars */
+    .status-bar {
+      height: 44px;
+      padding: 0 24px 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 5;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .status-icons { display: flex; align-items: center; gap: 6px; font-size: 10px; }
+    .battery { width: 20px; height: 10px; border: 1.5px solid currentColor; border-radius: 3px; position: relative; }
+    .battery::before { content: ""; position: absolute; inset: 1.5px; border-radius: 1px; background: currentColor; }
+    .battery::after { content: ""; position: absolute; width: 2px; height: 4px; background: currentColor; right: -3.5px; top: 1.5px; border-radius: 0 2px 2px 0; }
+
+    .gesture-bar {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 118px;
+      height: 4px;
+      background: #222026;
+      border-radius: 99px;
+      opacity: .85;
+      z-index: 15;
+    }
+
+    /* Top Bar with Back Arrow & Cancel Cross */
+    .top-bar {
+      height: 54px;
+      padding: 0 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 4;
+      flex-shrink: 0;
+    }
+    .nav-circle-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: 0 4px 12px rgba(34, 32, 38, .05);
+      color: var(--ink);
+    }
+    .top-step-pill {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      color: var(--muted);
+      background: rgba(255,255,255,0.85);
+      border: 1px solid var(--line);
+      padding: 5px 12px;
+      border-radius: 99px;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      height: 78px;
+      background: #ffffff;
+      border-top: 1px solid #f0eef2;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      padding: 4px 12px 14px;
+      position: relative;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8e8a94;
+    }
+    .nav-tab.active { color: var(--coral-deep); font-weight: 800; }
+    .nav-icon-wrap {
+      width: 38px;
+      height: 28px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+    }
+    .nav-tab.active .nav-icon-wrap { background: var(--coral-soft); }
+
+    /* Typography & Shared Controls */
+    .brand-row { height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-family: var(--font-display); font-size: 15px; font-weight: 800; position: relative; z-index: 2; }
+    .brand-left { display: flex; align-items: center; gap: 9px; }
+    .brand-mark {
+      width: 29px; height: 29px; border-radius: 10px 10px 10px 4px; display: inline-grid; place-items: center;
+      color: white; font-size: 12px; letter-spacing: -.06em; background: var(--coral);
+      transform: rotate(-4deg); box-shadow: 0 5px 12px rgba(255, 107, 107, .28);
+    }
+    .content-col { flex: 1; padding: 8px 24px 20px; display: flex; flex-direction: column; position: relative; z-index: 2; }
+    .screen-h1 { font-family: var(--font-display); font-size: 29px; line-height: 1.14; letter-spacing: -.03em; font-weight: 800; color: var(--ink); }
+    .sub-p { margin-top: 6px; font-size: 13.5px; line-height: 1.48; color: var(--muted); }
+
+    .eyebrow {
+      display: inline-flex; width: fit-content; padding: 6px 12px; border-radius: 99px; color: var(--mint-deep);
+      background: var(--mint-soft); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 10px;
+    }
+    .eyebrow.coral { color: var(--coral-deep); background: var(--coral-soft); }
+
+    /* Shimmering Primary CTA Buttons */
+    .btn-primary, .btn-google, .btn-secondary, .btn-mint {
+      height: 54px; border-radius: 99px; display: flex; align-items: center; justify-content: center;
+      gap: 10px; font-size: 14px; font-weight: 700; border: none; width: 100%; position: relative; overflow: hidden;
+    }
+    .btn-primary, .btn-google {
+      color: white;
+      background: linear-gradient(135deg, #ff7878 0%, #ff5e62 100%);
+      box-shadow: 0 10px 24px rgba(255, 107, 107, .30);
+    }
+    .btn-primary::after, .btn-google::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 45%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+      animation: shimmerSweep 4s infinite;
+    }
+    .btn-mint {
+      color: white;
+      background: linear-gradient(135deg, #4ecdc4 0%, #34b3aa 100%);
+      box-shadow: 0 10px 24px rgba(78, 205, 196, .30);
+    }
+    .btn-secondary {
+      color: var(--mint-deep);
+      border: 1.5px solid var(--mint);
+      background: rgba(255,255,255,.95);
+    }
+
+    .card-white {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 18px;
+      border: 1px solid rgba(34, 32, 38, 0.06);
+      box-shadow: 0 10px 28px rgba(34, 32, 38, 0.045);
+    }
+
+    /* Form Controls */
+    .form-stack { display: grid; gap: 14px; margin-top: 18px; }
+    .field-shell { display: grid; gap: 6px; }
+    .field-label { padding-left: 3px; color: #48444d; font-size: 12px; font-weight: 700; }
+    .field-control {
+      height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px;
+      background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px;
+      box-shadow: 0 5px 16px rgba(34, 32, 38, .03); font-size: 14px; color: #aaa7ae; font-weight: 500;
+    }
+    .field-control.filled { color: var(--ink); font-weight: 700; }
+    .field-control.focused-mint { border-color: var(--mint); box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.14); }
+    .field-control.focused-coral { border-color: var(--coral); box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.14); }
+
+    .strength-row { display: flex; align-items: center; gap: 10px; margin: 6px 3px 0; color: var(--mint-deep); font-size: 10px; font-weight: 800; }
+    .strength-track { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .strength-track span { height: 4px; border-radius: 99px; background: #e4e2e5; }
+    .strength-track span.filled { background: var(--mint); }
+    .terms-row { display: grid; grid-template-columns: 20px 1fr; gap: 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .custom-check { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 7px; background: var(--mint); color: white; font-size: 12px; font-weight: 800; }
+
+    /* Onboarding Expanded Full-Bleed Card */
+    .onb-hero-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 28px;
+      padding: 22px 22px 26px;
+      background: #ffffff;
+      border: 1px solid rgba(34, 32, 38, 0.06);
+      box-shadow: 0 18px 46px rgba(34, 32, 38, 0.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .onb-glow-orb {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      top: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: pulseHalo 4s ease-in-out infinite;
+    }
+    .onb-illustration {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      position: relative;
+      z-index: 2;
+      animation: floatSlow 4.5s ease-in-out infinite;
+    }
+
+    /* Animated Mascot Egg */
+    .egg-float { animation: floatSlow 4s ease-in-out infinite; }
+    .egg-wobble { animation: eggWobble 3.6s ease-in-out infinite; transform-origin: 50% 85%; }
+
+    /* Visual Edge-Case UI Map */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .filter-btn {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border-radius: 99px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .filter-btn:hover { border-color: var(--coral); transform: translateY(-1px); }
+    .filter-btn.active {
+      background: var(--coral);
+      color: white;
+      border-color: var(--coral);
+      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.25);
+    }
+
+    .ec-ui-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(365px, 1fr));
+      gap: 20px;
+    }
+    .ec-ui-card {
+      background: #ffffff;
+      border: 1px solid rgba(34, 32, 38, 0.08);
+      border-radius: 26px;
+      padding: 20px;
+      box-shadow: 0 12px 32px rgba(34, 32, 38, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.25s cubic-bezier(.22,1,.36,1), box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .ec-ui-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 107, 107, 0.32);
+      box-shadow: 0 20px 44px rgba(34, 32, 38, 0.09);
+    }
+    .ec-ui-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .ec-code-tag {
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: #f3f1f6;
+      color: var(--ink);
+    }
+    .sev-pill {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .sev-crit { background: var(--coral-soft); color: var(--coral-deep); }
+    .sev-high { background: var(--amber-soft); color: var(--amber-deep); }
+    .sev-norm { background: var(--mint-soft); color: var(--mint-deep); }
+
+    .ec-ui-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .ec-ui-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-top: -6px;
+    }
+
+    /* Mini Phone UI Mockup inside Edge-Case Card */
+    .ec-mini-phone {
+      background: linear-gradient(180deg, #f6f5f8 0%, #efedf3 100%);
+      border: 1px solid rgba(34, 32, 38, 0.09);
+      border-radius: 22px;
+      padding: 10px 12px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ec-mini-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+    .ec-mini-nav-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: white;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .ec-mini-surface {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 8px 22px rgba(34, 32, 38, 0.065);
+      border: 1px solid rgba(34, 32, 38, 0.05);
+    }
+    .ec-mini-btn {
+      margin-top: 10px;
+      height: 36px;
+      border-radius: 99px;
+      background: var(--coral);
+      color: white;
+      font-size: 11.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 14px rgba(255, 107, 107, 0.24);
+    }
+    .ec-mini-btn.mint { background: var(--mint); box-shadow: 0 6px 14px rgba(78, 205, 196, 0.24); }
+    .ec-mini-btn.outline { background: white; color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
+
+    .ec-rule-note {
+      font-size: 11.5px;
+      line-height: 1.48;
+      color: var(--ink);
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px dashed rgba(34, 32, 38, 0.14);
+    }
+    .ec-rule-note b { color: var(--mint-deep); }
+
+    .map-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      padding-top: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Header -->
+    <header class="map-header">
+      <div>
+        <div class="kicker">ItsAlive · Feature 001 Deep-Dive &amp; Visual Edge-Case UI Map</div>
+        <h1>Auth, Full 3-Card Onboarding,<br>1-on-1 Pairing &amp; Edge-Case UI</h1>
+        <p>11 High-Craft Android Screens (with Back &amp; Close Controls) + 12 Interactive Edge-Case UI Cards · Outfit &amp; Plus Jakarta Sans</p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-group">
+          <div class="legend-title">Flow Semantics</div>
+          <div class="legend-item"><span class="swatch" style="background: var(--coral);"></span> Primary Journey &amp; Host Actions</div>
+          <div class="legend-item"><span class="swatch" style="background: var(--mint);"></span> Guest Join, Profile &amp; Hatch Reward</div>
+          <div class="legend-item"><span class="swatch" style="background: var(--amber);"></span> Validation, Expiration &amp; Warning States</div>
+        </div>
+        <div class="legend-group">
+          <div class="legend-title">UI Craft Details</div>
+          <div class="legend-item">Navigation: <b>Back (‹) &amp; Close (✕) on every flow step</b></div>
+          <div class="legend-item">Layout: <b>Full-height balanced cards, zero dead space</b></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sticky Navigation -->
+    <nav class="feature-nav">
+      <div class="nav-links">
+        <a href="#stage-auth">1A · Entry &amp; Authentication (4)</a>
+        <a href="#stage-onboarding">1B · 3-Card Onboarding &amp; Profile (4)</a>
+        <a href="#stage-pairing">1C · 1-on-1 Pairing &amp; Hatching (3)</a>
+        <a href="#stage-edge-cases">1D · Feature 001 Edge-Case UI Map (12)</a>
+      </div>
+      <span class="nav-pill-badge">Feature 001 Complete Specification</span>
+    </nav>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 1A: ENTRY & AUTHENTICATION                                      -->
+    <!-- ===================================================================== -->
+    <section id="stage-auth" class="flow-section">
+      <div class="section-badge">
+        <h2><span class="feature-tag">STAGE 1A</span> Entry &amp; Authentication Flow</h2>
+        <span class="flow-summary">Welcome → Sign In (with Back &amp; Close) → Create Account → Reset Password</span>
+      </div>
+
+      <div class="logic-grid">
+        <div class="logic-card coral">
+          <h4>Explicit Navigation Controls</h4>
+          <p>Every sub-screen provides a top-left <b>Back (‹)</b> button and a top-right <b>Close (✕)</b> button to return cleanly to the entry screen.</p>
+        </div>
+        <div class="logic-card">
+          <h4>Balanced Full-Screen Density</h4>
+          <p>Form cards and trust badges expand naturally to fill the <code>393 × 852 dp</code> canvas with zero awkward empty gaps.</p>
+        </div>
+        <div class="logic-card amber">
+          <h4>Instant Provider Reconciliation</h4>
+          <p>Google OAuth and Email/Password share a unified identity check, preventing duplicate accounts on the same email address.</p>
+        </div>
+      </div>
+
+      <div class="screens-row">
+        <!-- 01. Start / Welcome Screen -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top"><span class="node-id">01 · ENTRY</span><span class="node-route">/welcome</span></div>
+            <h3>Welcome &amp; Mascot Egg</h3>
+            <p>Animated mascot egg, value prop &amp; primary auth</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen" style="background: radial-gradient(circle at 84% 18%, rgba(255, 230, 109, .24), transparent 130px), radial-gradient(circle at 12% 38%, rgba(78, 205, 196, .14), transparent 160px), var(--background);">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="brand-row">
+                <div class="brand-left"><span class="brand-mark">ia</span><span>ItsAlive</span></div>
+                <span style="font-size: 10.5px; font-weight: 800; color: var(--mint-deep); background: var(--mint-soft); padding: 4px 10px; border-radius: 99px;">Android v1.0</span>
+              </div>
+
+              <div style="height: 295px; margin: 4px 24px 0; position: relative; display: grid; place-items: center;">
+                <div style="position: absolute; width: 236px; height: 236px; border-radius: 50%; background: var(--mint-soft); border: 1.5px dashed rgba(37, 138, 131, .24); animation: pulseHalo 4s ease-in-out infinite;"></div>
+                <svg class="egg-float" viewBox="0 0 220 200" style="position: relative; width: 218px; height: 198px; margin-top: 12px; filter: drop-shadow(0 16px 20px rgba(34, 32, 38, .09));">
+                  <ellipse cx="111" cy="183" rx="67" ry="9" fill="#2A2730" opacity=".08" />
+                  <path d="M58 116c5-52 28-88 53-88s48 36 53 88c5 49-17 68-53 68s-58-19-53-68Z" fill="#FFF" />
+                  <path d="M59 113c12 4 19-2 27 3 10 6 17-9 28-2 11 7 17-5 27 0 8 4 13-2 22-2 7 48-16 72-52 72-35 0-58-24-52-71Z" fill="#FF6B6B" />
+                  <path d="m77 72-17-25c-3-5 2-11 7-9 17 4 24 16 25 27" fill="#4ECDC4" stroke="#258A83" stroke-width="4" stroke-linejoin="round" />
+                  <path d="m145 70 16-23c3-5-2-11-8-9-16 5-23 17-24 28" fill="#4ECDC4" stroke="#258A83" stroke-width="4" stroke-linejoin="round" />
+                  <path d="M78 83c7-22 20-34 33-34s26 12 33 34" fill="#B9F0EC" />
+                  <path d="M90 85c2 0 4 2 4 5s-2 5-4 5-4-2-4-5 2-5 4-5Zm42 0c2 0 4 2 4 5s-2 5-4 5-4-2-4-5 2-5 4-5Z" fill="#222026" />
+                  <path d="M105 98c3-3 9-3 12 0-1 5-3 7-6 7s-5-2-6-7Z" fill="#FF6B6B" />
+                  <path d="M111 104c0 7-9 9-12 3m12-3c0 7 9 9 12 3" fill="none" stroke="#222026" stroke-width="3" stroke-linecap="round" />
+                </svg>
+              </div>
+
+              <div style="padding: 4px 24px 0; position: relative; z-index: 2;">
+                <span class="eyebrow">Made for two</span>
+                <h1 class="screen-h1">Small moments.<br>More us.</h1>
+                <p class="sub-p">A private shared world for you, your favorite person, and one growing companion.</p>
+              </div>
+
+              <div style="margin-top: auto; padding: 0 24px 26px; display: grid; gap: 10px; z-index: 3;">
+                <div class="btn-google">
+                  <svg width="19" height="19" viewBox="0 0 24 24"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.8 3-4.4 3-7.4Z"/><path fill="#fff" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.5c-.9.6-2.1 1-3.4 1-2.6 0-4.9-1.8-5.7-4.2H2.9v2.6A10 10 0 0 0 12 22Z"/><path fill="#fff" d="M6.3 13.9a6 6 0 0 1 0-3.8V7.5H2.9a10 10 0 0 0 0 9l3.4-2.6Z"/><path fill="#fff" d="M12 5.9c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 2.9 7.5l3.4 2.6C7.1 7.7 9.4 5.9 12 5.9Z"/></svg>
+                  <span>Continue with Google</span>
+                </div>
+                <div class="btn-secondary">Sign In with Email</div>
+                <p style="margin-top: 2px; text-align: center; font-size: 12px; color: var(--muted);">New here? <b style="color: var(--coral-deep);">Create Account</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Email Auth</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- 02. Sign In Screen -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top"><span class="node-id">02 · AUTH</span><span class="node-route">/sign-in</span></div>
+            <h3>Sign In Screen</h3>
+            <p>Back (‹) &amp; Close (✕), filled form card &amp; recovery</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">SIGN IN</span>
+                <span class="nav-circle-btn" title="Cancel">✕</span>
+              </div>
+              <div class="content-col">
+                <span class="eyebrow coral">Welcome back</span>
+                <h1 class="screen-h1">Sign in to your<br>shared space</h1>
+                <p class="sub-p">Pick up right where you and your partner left off.</p>
+
+                <div class="card-white" style="margin-top: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div style="display: grid; gap: 14px;">
+                    <div class="field-shell">
+                      <span class="field-label">Email Address</span>
+                      <div class="field-control filled focused-mint">ksenia@itsalive.app</div>
+                    </div>
+                    <div class="field-shell">
+                      <span class="field-label">Password</span>
+                      <div class="field-control filled" style="justify-content: space-between;">
+                        <span>••••••••••••</span>
+                        <span style="font-size: 11px; font-weight: 700; color: var(--mint-deep);">Show</span>
+                      </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 11px; color: var(--muted); font-weight: 600;">Encrypted session</span>
+                      <span style="color: var(--coral-deep); font-size: 12px; font-weight: 700;">Forgot Password?</span>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; gap: 10px; margin-top: 18px;">
+                    <div class="btn-primary">Sign In</div>
+                    <div style="height: 46px; border-radius: 99px; border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink);">
+                      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.8 3-4.4 3-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.5c-.9.6-2.1 1-3.4 1-2.6 0-4.9-1.8-5.7-4.2H2.9v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.3 13.9a6 6 0 0 1 0-3.8V7.5H2.9a10 10 0 0 0 0 9l3.4-2.6Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 2.9 7.5l3.4 2.6C7.1 7.7 9.4 5.9 12 5.9Z"/></svg>
+                      <span>Sign In with Google</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--muted);">Don't have an account? <b style="color: var(--coral-deep);">Create Account</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Register</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- 03. Create Account Screen -->
+        <div class="node-wrapper">
+          <div class="node-meta mint">
+            <div class="node-meta-top"><span class="node-id">03 · SIGN UP</span><span class="node-route">/sign-up</span></div>
+            <h3>Create Account</h3>
+            <p>Back (‹) &amp; Close (✕), strength bar &amp; consent</p>
+          </div>
+          <div class="phone-viewport mint-glow">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">NEW ACCOUNT</span>
+                <span class="nav-circle-btn" title="Cancel">✕</span>
+              </div>
+              <div class="content-col">
+                <span class="eyebrow">Get started</span>
+                <h1 class="screen-h1">Create Your<br>Account</h1>
+                <p class="sub-p">Start your private two-person journey.</p>
+
+                <div class="card-white" style="margin-top: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div style="display: grid; gap: 14px;">
+                    <div class="field-shell">
+                      <span class="field-label">Email Address</span>
+                      <div class="field-control filled">ksenia@itsalive.app</div>
+                    </div>
+                    <div class="field-shell">
+                      <span class="field-label">Create Password</span>
+                      <div class="field-control filled focused-mint" style="justify-content: space-between;">
+                        <span>••••••••••••</span>
+                        <span style="font-size: 11px; color: var(--muted);">Hide</span>
+                      </div>
+                      <div class="strength-row"><div class="strength-track"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span></div><span>Strong password</span></div>
+                    </div>
+                    <div class="terms-row" style="margin-top: 4px;">
+                      <span class="custom-check">✓</span>
+                      <span>I agree to the <b style="color: var(--coral-deep);">Privacy Policy</b> &amp; <b style="color: var(--coral-deep);">Terms of Service</b></span>
+                    </div>
+                  </div>
+
+                  <div class="btn-primary" style="margin-top: 18px;">Create Account</div>
+                </div>
+
+                <p style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--muted);">Already have an account? <b style="color: var(--coral-deep);">Sign In</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Recovery</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- 04. Reset Password Screen -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top"><span class="node-id">04 · RECOVERY</span><span class="node-route">/forgot-password</span></div>
+            <h3>Reset Password</h3>
+            <p>Back (‹) &amp; Close (✕), recovery dispatch card</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">RECOVERY</span>
+                <span class="nav-circle-btn" title="Cancel">✕</span>
+              </div>
+              <div class="content-col">
+                <div class="card-white" style="margin-top: 8px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; text-align: center;">
+                  <div>
+                    <div style="width: 82px; height: 82px; margin: 12px auto 18px; border-radius: 26px; background: var(--coral-soft); color: var(--coral-deep); display: grid; place-items: center;">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <h1 class="screen-h1" style="font-size: 26px;">Reset Password</h1>
+                    <p class="sub-p" style="margin: 8px auto 0;">Enter your registered email and we will send a secure reset link.</p>
+                  </div>
+
+                  <div style="text-align: left; display: grid; gap: 14px; margin-top: 18px;">
+                    <div class="field-shell">
+                      <span class="field-label">Registered Email</span>
+                      <div class="field-control filled">ksenia@itsalive.app</div>
+                    </div>
+                    <div style="background: var(--mint-soft); color: var(--mint-deep); padding: 10px 12px; border-radius: 14px; font-size: 11px; font-weight: 700;">
+                      Link stays active for 30 minutes · Check spam folder if delayed.
+                    </div>
+                    <div class="btn-primary">Send Reset Link</div>
+                  </div>
+                </div>
+
+                <p style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--muted);">Remembered your password? <b style="color: var(--coral-deep);">Back to Sign In</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 1B: FULL 3-CARD ONBOARDING & PROFILE SETUP                      -->
+    <!-- ===================================================================== -->
+    <section id="stage-onboarding" class="flow-section">
+      <div class="section-badge">
+        <h2><span class="feature-tag mint">STAGE 1B</span> Complete 3-Card Onboarding Intro &amp; Profile Setup</h2>
+        <span class="flow-summary">Card 01/03 (1 Photo a Day) → Card 02/03 (Grow Your Companion) → Card 03/03 (Private Space for Two) → Profile Setup</span>
+      </div>
+
+      <div class="screens-row">
+        <!-- Onboarding Card 01 / 03 -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top"><span class="node-id">ONB 01/03</span><span class="node-route">/onboarding?step=1</span></div>
+            <h3>Intro 01 · Daily Photo</h3>
+            <p>Full-bleed visual card · Close (✕) to skip intro</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="top-step-pill">01 / 03</span>
+                <span style="font-size: 12px; font-weight: 800; color: var(--coral-deep);">Skip Intro</span>
+                <span class="nav-circle-btn" title="Close">✕</span>
+              </div>
+              <div class="content-col" style="padding-top: 4px;">
+                <div class="onb-hero-card">
+                  <div class="onb-glow-orb" style="background: var(--coral-soft);"></div>
+                  <span class="eyebrow coral" style="position: relative; z-index: 2;">Together, every day</span>
+
+                  <div class="onb-illustration">
+                    <div style="width: 240px; height: 240px; position: relative;">
+                      <span style="position: absolute; width: 96px; height: 96px; right: 10px; top: 14px; border-radius: 50%; background: #ffe66d; opacity: .75;"></span>
+                      <div style="position: absolute; width: 126px; height: 162px; left: 18px; top: 24px; transform: rotate(-10deg); display: grid; place-items: center; border: 7px solid white; border-radius: 28px; background: var(--mint); color: var(--mint-deep); font-family: var(--font-display); font-size: 14px; font-weight: 800; box-shadow: 0 16px 28px rgba(34, 32, 38, .11);">Partner</div>
+                      <div style="position: absolute; width: 126px; height: 162px; right: 18px; top: 48px; transform: rotate(7deg); display: grid; place-items: center; border: 7px solid white; border-radius: 28px; background: linear-gradient(145deg, #ff9a9e, var(--coral)); box-shadow: 0 16px 28px rgba(34, 32, 38, .14);">
+                        <div style="width: 56px; height: 56px; display: grid; place-items: center; border: 8px solid white; border-radius: 50%;"><span style="width: 12px; height: 12px; border-radius: 50%; background: white;"></span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="position: relative; z-index: 2;">
+                    <h1 class="screen-h1">1 Live Photo<br>Every Day</h1>
+                    <p class="sub-p">Snap a candid moment during the 60-minute window. Both photos unlock only when you both share.</p>
+                  </div>
+                </div>
+
+                <div style="height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                  <span style="width: 26px; height: 7px; border-radius: 99px; background: var(--coral);"></span>
+                  <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+                  <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+                </div>
+                <div class="btn-primary">Continue →</div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Slide 2</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- Onboarding Card 02 / 03 -->
+        <div class="node-wrapper">
+          <div class="node-meta mint">
+            <div class="node-meta-top"><span class="node-id">ONB 02/03</span><span class="node-route">/onboarding?step=2</span></div>
+            <h3>Intro 02 · Shared Companion</h3>
+            <p>Back (‹) to Slide 1 · Close (✕) to skip</p>
+          </div>
+          <div class="phone-viewport mint-glow">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">02 / 03</span>
+                <span class="nav-circle-btn" title="Close">✕</span>
+              </div>
+              <div class="content-col" style="padding-top: 4px;">
+                <div class="onb-hero-card">
+                  <div class="onb-glow-orb" style="background: var(--mint-soft);"></div>
+                  <span class="eyebrow" style="position: relative; z-index: 2;">Care &amp; Progression</span>
+
+                  <div class="onb-illustration">
+                    <div style="width: 220px; height: 220px; border-radius: 50%; background: linear-gradient(180deg, #dcf4ee 0%, #f1f2e6 100%); display: grid; place-items: center; position: relative; box-shadow: inset 0 0 0 6px white;">
+                      <svg width="136" height="136" viewBox="0 0 120 120">
+                        <path d="M60 28 C60 16, 48 12, 44 18 C52 22, 57 26, 60 32" fill="#4ecdc4"/>
+                        <path d="M60 28 C60 16, 72 12, 76 18 C68 22, 63 26, 60 32" fill="#258a83"/>
+                        <rect x="30" y="32" width="60" height="62" rx="28" fill="#8ee3d5"/>
+                        <circle cx="36" cy="34" r="10" fill="#8ee3d5"/>
+                        <circle cx="84" cy="34" r="10" fill="#8ee3d5"/>
+                        <ellipse cx="60" cy="72" rx="18" ry="14" fill="#fff4d9"/>
+                        <circle cx="47" cy="55" r="4" fill="#222026"/>
+                        <circle cx="73" cy="55" r="4" fill="#222026"/>
+                        <ellipse cx="41" cy="61" rx="5" ry="3" fill="#ff8fa3"/>
+                        <ellipse cx="79" cy="61" rx="5" ry="3" fill="#ff8fa3"/>
+                        <path d="M55 60 Q60 65 65 60" stroke="#222026" stroke-width="3" fill="none" stroke-linecap="round"/>
+                      </svg>
+                      <span style="position: absolute; bottom: -10px; background: white; padding: 5px 14px; border-radius: 99px; font-size: 11px; font-weight: 800; color: var(--mint-deep); box-shadow: 0 6px 16px rgba(0,0,0,0.08);">+50 XP · HAPPY 😊</span>
+                    </div>
+                  </div>
+
+                  <div style="position: relative; z-index: 2;">
+                    <h1 class="screen-h1">Raise a Pet<br>Together</h1>
+                    <p class="sub-p">Feed, play, and sync daily steps to evolve your companion from a tiny egg into new stages.</p>
+                  </div>
+                </div>
+
+                <div style="height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                  <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+                  <span style="width: 26px; height: 7px; border-radius: 99px; background: var(--mint);"></span>
+                  <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+                </div>
+                <div class="btn-mint">Next →</div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Slide 3</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- Onboarding Card 03 / 03 -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top"><span class="node-id">ONB 03/03</span><span class="node-route">/onboarding?step=3</span></div>
+            <h3>Intro 03 · Private Space</h3>
+            <p>Back (‹) to Slide 2 · Privacy &amp; widgets highlight</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">03 / 03</span>
+                <span class="nav-circle-btn" title="Close">✕</span>
+              </div>
+              <div class="content-col" style="padding-top: 4px;">
+                <div class="onb-hero-card">
+                  <div class="onb-glow-orb" style="background: var(--amber-soft);"></div>
+                  <span class="eyebrow" style="position: relative; z-index: 2; background: var(--amber-soft); color: var(--amber-deep);">1-on-1 Privacy</span>
+
+                  <div class="onb-illustration">
+                    <div style="width: 245px; display: grid; gap: 12px;">
+                      <div style="background: white; border-radius: 20px; padding: 14px; border: 1px solid var(--line); box-shadow: 0 12px 26px rgba(34,32,38,0.08); display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--coral-soft); color: var(--coral-deep); display: grid; place-items: center; font-weight: 800; font-size: 13px;">2/2</div>
+                        <div>
+                          <div style="font-size: 13px; font-weight: 800;">Strictly Two People</div>
+                          <div style="font-size: 11px; color: var(--muted);">No public feeds, ads, or followers</div>
+                        </div>
+                      </div>
+                      <div style="background: white; border-radius: 20px; padding: 14px; border: 1px solid var(--line); box-shadow: 0 12px 26px rgba(34,32,38,0.08); display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--mint-soft); color: var(--mint-deep); display: grid; place-items: center; font-weight: 800; font-size: 13px;">GPS</div>
+                        <div>
+                          <div style="font-size: 13px; font-weight: 800;">EXIF Metadata Stripped</div>
+                          <div style="font-size: 11px; color: var(--muted);">Your location stays private by default</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="position: relative; z-index: 2;">
+                    <h1 class="screen-h1">Just You Two.<br>Always Private.</h1>
+                    <p class="sub-p">Keep your memories on your Android home screen widget without social media noise.</p>
+                  </div>
+                </div>
+
+                <div style="height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                  <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+                  <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+                  <span style="width: 26px; height: 7px; border-radius: 99px; background: var(--coral);"></span>
+                </div>
+                <div class="btn-primary">Set Up My Profile →</div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Profile</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- 04. Profile Setup Screen -->
+        <div class="node-wrapper">
+          <div class="node-meta mint">
+            <div class="node-meta-top"><span class="node-id">ONB 04</span><span class="node-route">/onboarding/profile</span></div>
+            <h3>Profile Personalisation</h3>
+            <p>Back (‹) &amp; Close (✕), avatar presets &amp; handle check</p>
+          </div>
+          <div class="phone-viewport mint-glow">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">PROFILE · 1 OF 2</span>
+                <span class="nav-circle-btn" title="Cancel">✕</span>
+              </div>
+              <div class="content-col" style="padding-top: 4px;">
+                <span class="eyebrow">Make it yours</span>
+                <h1 class="screen-h1">Complete Your<br>Profile</h1>
+                <p class="sub-p">Choose an avatar and display name for your partner.</p>
+
+                <div class="card-white" style="margin-top: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div>
+                    <div style="width: 88px; height: 88px; position: relative; padding: 5px; border-radius: 50%; background: white; box-shadow: 0 10px 26px rgba(34,32,38,.10); margin: 0 auto;">
+                      <div style="width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #ffd2c2, #f7a899); display: grid; place-items: center; font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #5c2a24;">K</div>
+                      <span style="position: absolute; width: 28px; height: 28px; right: -2px; bottom: 0; display: grid; place-items: center; color: white; border: 3px solid white; border-radius: 50%; background: var(--coral); font-size: 13px; font-weight: 800;">+</span>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 12px;">
+                      <span style="width: 34px; height: 34px; border-radius: 50%; background: #ffd2c2; border: 2.5px solid var(--coral);"></span>
+                      <span style="width: 34px; height: 34px; border-radius: 50%; background: #b9f0ec;"></span>
+                      <span style="width: 34px; height: 34px; border-radius: 50%; background: #ffe99a;"></span>
+                      <span style="width: 34px; height: 34px; border-radius: 50%; background: #c8c4f3;"></span>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; gap: 12px; margin-top: 14px;">
+                    <div class="field-shell">
+                      <div style="display:flex; justify-content:space-between; font-size:11px;"><b style="color:#48444d;">Display Name</b><span style="color:#99959e;">6 / 24</span></div>
+                      <div class="field-control filled" style="height: 50px;">Ksenia</div>
+                    </div>
+                    <div class="field-shell">
+                      <div style="display:flex; justify-content:space-between; font-size:11px;"><b style="color:#48444d;">Username</b><span style="color:var(--mint-deep); font-weight:800;">✓ Available</span></div>
+                      <div class="field-control filled focused-mint" style="height: 50px; justify-content: space-between;"><span>@ksenia_42</span><span style="color:var(--mint-deep); font-weight: 800;">✓</span></div>
+                    </div>
+                  </div>
+
+                  <div class="btn-primary" style="margin-top: 16px;">Save Profile &amp; Pair →</div>
+                </div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 1C: 1-ON-1 PAIRING, EGG SELECTION & HATCHING                    -->
+    <!-- ===================================================================== -->
+    <section id="stage-pairing" class="flow-section">
+      <div class="section-badge">
+        <h2><span class="feature-tag">STAGE 1C</span> 1-on-1 Pairing, Egg Selection &amp; Companion Hatching</h2>
+        <span class="flow-summary">Host Create Room (4 Eggs + 6-Digit Code) ↔ Guest Join Room → Egg Hatch &amp; Naming</span>
+      </div>
+
+      <div class="screens-row">
+        <!-- Pair 01: Host Room Creation -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top"><span class="node-id">PAIR 01</span><span class="node-route">/pair/create</span></div>
+            <h3>A Little Beginning (Host)</h3>
+            <p>Back (‹) &amp; Close (✕), 4 egg colors &amp; 24h room code</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">A LITTLE BEGINNING · 01/02</span>
+                <span class="nav-circle-btn" title="Close">✕</span>
+              </div>
+              <div class="content-col" style="padding-top: 4px;">
+                <h1 class="screen-h1">Better, together.</h1>
+                <p class="sub-p">Pick your little companion. Invite your favorite person.</p>
+
+                <div class="card-white" style="margin-top: 14px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                    <span style="font-size: 14px; font-weight: 800;">Your story starts here</span>
+                    <span style="font-size: 11px; font-weight: 600; color: var(--muted);">1 of 4</span>
+                  </div>
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                    <div class="egg-wobble" style="border: 2px solid var(--mint-deep); background: var(--mint-soft); border-radius: 16px; padding: 10px 4px; text-align: center;">
+                      <div style="width: 34px; height: 42px; margin: 0 auto 6px; border-radius: 50% 50% 45% 45%; background: linear-gradient(160deg, #8ee3d5, #4ecdc4); position: relative;"><span style="position:absolute; top:10px; left:8px; width:4px; height:4px; border-radius:50%; background:rgba(255,255,255,0.75);"></span></div>
+                      <div style="font-size: 10px; font-weight: 800; color: var(--mint-deep);">Green</div>
+                    </div>
+                    <div style="background: #f5f7fa; border-radius: 16px; padding: 10px 4px; text-align: center;">
+                      <div style="width: 34px; height: 42px; margin: 0 auto 6px; border-radius: 50% 50% 45% 45%; background: linear-gradient(160deg, #a3d5ff, #6bb5ff);"></div>
+                      <div style="font-size: 10px; font-weight: 600; color: var(--muted);">Blue</div>
+                    </div>
+                    <div style="background: #fcf6ef; border-radius: 16px; padding: 10px 4px; text-align: center;">
+                      <div style="width: 34px; height: 42px; margin: 0 auto 6px; border-radius: 50% 50% 45% 45%; background: linear-gradient(160deg, #ffd19c, #f4a261);"></div>
+                      <div style="font-size: 10px; font-weight: 600; color: var(--muted);">Orange</div>
+                    </div>
+                    <div style="background: #f6f2fc; border-radius: 16px; padding: 10px 4px; text-align: center;">
+                      <div style="width: 34px; height: 42px; margin: 0 auto 6px; border-radius: 50% 50% 45% 45%; background: linear-gradient(160deg, #d7befc, #a78bfa);"></div>
+                      <div style="font-size: 10px; font-weight: 600; color: var(--muted);">Purple</div>
+                    </div>
+                  </div>
+                  <div style="margin-top: 10px; text-align: center; font-size: 11px; font-weight: 700; color: var(--mint-deep);">✓ Green egg · a fresh little start</div>
+                </div>
+
+                <div style="background: var(--coral-soft); border-radius: 26px; padding: 18px 16px; margin-top: 14px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: #5b5761;">
+                      <span>Your room code</span>
+                      <span style="color: var(--coral-deep);">Expires in 23:59</span>
+                    </div>
+                    <div style="font-family: var(--font-display); font-size: 38px; font-weight: 800; letter-spacing: 0.04em; margin: 6px 0 2px;">482 – 910</div>
+                    <div style="font-size: 11px; color: var(--muted);">One code. Your own little world.</div>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+                    <div style="height: 46px; background: white; border-radius: 99px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">Copy Code</div>
+                    <div style="height: 46px; background: var(--coral); color: white; border-radius: 99px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 700; box-shadow: 0 6px 16px rgba(255,107,107,0.28);">Share Invite</div>
+                  </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 10px; font-size: 12px; font-weight: 800; color: var(--coral-deep);">Have a code? Join a room →</div>
+              </div>
+              <div class="bottom-nav">
+                <div class="nav-tab"><div class="nav-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><span>Today</span></div>
+                <div class="nav-tab"><div class="nav-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg></div><span>Pet room</span></div>
+                <div class="nav-tab active"><div class="nav-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><span>Pair</span></div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Join Code</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- Pair 02: Join Room Screen -->
+        <div class="node-wrapper">
+          <div class="node-meta mint">
+            <div class="node-meta-top"><span class="node-id">PAIR 02</span><span class="node-route">/pair/join</span></div>
+            <h3>Join a Room (Guest)</h3>
+            <p>Back (‹) &amp; Close (✕), 6-digit OTP input &amp; preview</p>
+          </div>
+          <div class="phone-viewport mint-glow">
+            <div class="phone-screen">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill">JOIN ROOM · 01/02</span>
+                <span class="nav-circle-btn" title="Cancel">✕</span>
+              </div>
+              <div class="content-col">
+                <span class="eyebrow">Invite accepted</span>
+                <h1 class="screen-h1">Join your<br>person’s room</h1>
+                <p class="sub-p">Enter the 6-digit code shared by your partner (valid for 24h).</p>
+
+                <div class="card-white" style="margin-top: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; text-align: center;">
+                  <div>
+                    <div style="font-size: 10.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px;">6-Digit Invite Code</div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px;">
+                      <div style="height: 56px; border-radius: 14px; border: 2px solid var(--mint); background: var(--mint-soft); display: grid; place-items: center; font-family: var(--font-display); font-size: 22px; font-weight: 800;">4</div>
+                      <div style="height: 56px; border-radius: 14px; border: 2px solid var(--mint); background: var(--mint-soft); display: grid; place-items: center; font-family: var(--font-display); font-size: 22px; font-weight: 800;">8</div>
+                      <div style="height: 56px; border-radius: 14px; border: 2px solid var(--mint); background: var(--mint-soft); display: grid; place-items: center; font-family: var(--font-display); font-size: 22px; font-weight: 800;">2</div>
+                      <div style="height: 56px; border-radius: 14px; border: 2px solid var(--mint); background: var(--mint-soft); display: grid; place-items: center; font-family: var(--font-display); font-size: 22px; font-weight: 800;">9</div>
+                      <div style="height: 56px; border-radius: 14px; border: 2px solid var(--mint); background: var(--mint-soft); display: grid; place-items: center; font-family: var(--font-display); font-size: 22px; font-weight: 800;">1</div>
+                      <div style="height: 56px; border-radius: 14px; border: 2px solid var(--mint); background: var(--mint-soft); display: grid; place-items: center; font-family: var(--font-display); font-size: 22px; font-weight: 800;">0</div>
+                    </div>
+
+                    <div style="background: var(--mint-soft); border-radius: 18px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-align: left;">
+                      <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ffd2c2, #e8998d); display: grid; place-items: center; font-weight: 800; color: #5c2a24;">K</div>
+                      <div>
+                        <div style="font-size: 12.5px; font-weight: 800; color: var(--mint-deep);">Room Ready · Hosted by Ksenia</div>
+                        <div style="font-size: 11px; color: var(--muted);">Green Egg selected · 1 slot available</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; gap: 10px; margin-top: 18px;">
+                    <div class="btn-primary">Join Room &amp; Hatch Egg</div>
+                    <div style="font-size: 11px; color: var(--muted);">1-on-1 private space · No third party can join</div>
+                  </div>
+                </div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Paired!</span>
+          <svg viewBox="0 0 54 14"><line x1="2" y1="7" x2="46" y2="7" stroke="#ff6b6b" stroke-width="2" class="flow-dash-line"/><polyline points="42 3 48 7 42 11" fill="none" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+
+        <!-- Pair 03: Egg Hatch & Naming -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top"><span class="node-id">PAIR 03</span><span class="node-route">/pair/hatch</span></div>
+            <h3>Egg Hatch &amp; Naming</h3>
+            <p>Step 02/02 · Name shared Level 1 Baby companion</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen" style="background: radial-gradient(circle at 50% 30%, rgba(78,205,196,0.18), transparent 230px), var(--background);">
+              <div class="status-bar"><span>9:41</span><div class="status-icons"><span>5G</span><span>WiFi</span><span class="battery"></span></div></div>
+              <div class="top-bar">
+                <span class="nav-circle-btn" title="Back">‹</span>
+                <span class="top-step-pill" style="color: var(--mint-deep); background: var(--mint-soft);">PAIRED · 02/02</span>
+                <span class="nav-circle-btn" title="Close">✕</span>
+              </div>
+              <div class="content-col" style="text-align: center;">
+                <span class="eyebrow" style="margin: 0 auto 8px;">Your egg hatched</span>
+                <h1 class="screen-h1">Meet your<br>little companion</h1>
+                <p class="sub-p">Level 1 Baby · 80% Energy · 80% Happiness</p>
+
+                <div class="card-white" style="margin-top: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div class="egg-float" style="width: 176px; height: 176px; margin: 4px auto; border-radius: 50%; background: linear-gradient(180deg, #dcf4ee 0%, #f1f2e6 100%); display: grid; place-items: center; position: relative; box-shadow: inset 0 0 0 6px white;">
+                    <svg width="122" height="122" viewBox="0 0 120 120">
+                      <path d="M60 28 C60 16, 48 12, 44 18 C52 22, 57 26, 60 32" fill="#4ecdc4"/>
+                      <path d="M60 28 C60 16, 72 12, 76 18 C68 22, 63 26, 60 32" fill="#258a83"/>
+                      <rect x="30" y="32" width="60" height="62" rx="28" fill="#8ee3d5"/>
+                      <circle cx="36" cy="34" r="10" fill="#8ee3d5"/>
+                      <circle cx="84" cy="34" r="10" fill="#8ee3d5"/>
+                      <ellipse cx="60" cy="72" rx="18" ry="14" fill="#fff4d9"/>
+                      <circle cx="47" cy="55" r="4" fill="#222026"/>
+                      <circle cx="73" cy="55" r="4" fill="#222026"/>
+                      <ellipse cx="41" cy="61" rx="5" ry="3" fill="#ff8fa3"/>
+                      <ellipse cx="79" cy="61" rx="5" ry="3" fill="#ff8fa3"/>
+                      <path d="M55 60 Q60 65 65 60" stroke="#222026" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    <span style="position: absolute; bottom: -10px; background: white; padding: 4px 12px; border-radius: 99px; font-size: 10px; font-weight: 800; color: var(--mint-deep); box-shadow: 0 4px 12px rgba(0,0,0,0.08);">BABY 🐣</span>
+                  </div>
+
+                  <div class="field-shell" style="text-align: left; margin-top: 10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px;"><b style="color:#48444d;">Companion Name</b><span style="color:var(--mint-deep); font-weight:700;">Shared by both</span></div>
+                    <div class="field-control filled focused-mint" style="justify-content: space-between;">
+                      <span>Buddy</span>
+                      <span style="font-size: 11px; color: var(--muted);">Editable anytime</span>
+                    </div>
+                  </div>
+
+                  <div class="btn-primary" style="margin-top: 14px;">Enter Our Shared World →</div>
+                </div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 1D: VISUAL EDGE-CASE UI MAP (FEATURE 001 - 12 EDGE CASES)       -->
+    <!-- ===================================================================== -->
+    <section id="stage-edge-cases" class="flow-section">
+      <div class="section-badge">
+        <h2><span class="feature-tag amber">STAGE 1D · EDGE-CASE UI MAP</span> All 12 Edge-Case UI States for Auth, Onboarding &amp; Pairing</h2>
+        <span class="flow-summary">Every edge case rendered with Back (‹) / Close (✕) controls, error banners, and backend validation rules</span>
+      </div>
+
+      <div class="filter-bar" id="edgeFilterBar">
+        <button class="filter-btn active" data-cat="ALL">All Feature 001 Edge Cases (12)</button>
+        <button class="filter-btn" data-cat="AUTH">Auth &amp; Recovery (4)</button>
+        <button class="filter-btn" data-cat="ONB">Onboarding &amp; Profile (3)</button>
+        <button class="filter-btn" data-cat="PAIR">1-on-1 Pairing &amp; Room Codes (5)</button>
+      </div>
+
+      <div class="ec-ui-grid" id="edgeGrid"></div>
+    </section>
+
+    <footer class="map-footer">
+      <div style="display:flex; align-items:center; gap:10px; color: var(--ink);">
+        <span class="brand-mark">ia</span>
+        <b>ItsAlive Feature 001 Master UI Flow &amp; Visual Edge-Case Map</b>
+      </div>
+      <div>11 High-Craft Screens + 12 Edge-Case UI States · Outfit &amp; Plus Jakarta Sans · English</div>
+    </footer>
+  </div>
+
+  <script>
+    const EDGE_CASES_001 = [
+      // AUTH (4)
+      {
+        code: "EC-001-01", cat: "AUTH", sev: "crit",
+        title: "Google vs. Email Provider Conflict",
+        desc: "User attempts Email/Password login on an address registered via Google Sign-In.",
+        navTitle: "ACCOUNT CONFLICT",
+        ui: `
+          <div style="font-size:12px;font-weight:800;margin-bottom:4px;">Account Already Exists</div>
+          <div style="font-size:11px;color:#76727d;line-height:1.42;">This email is linked to Google Sign-In. Continue with Google to access your room.</div>
+          <div class="ec-mini-btn">Continue with Google</div>
+          <div class="ec-mini-btn outline" style="margin-top:6px;">Use Different Email</div>
+        `,
+        fix: "Intercepts auth/account-exists-with-different-credential and presents one-tap Google reconciliation."
+      },
+      {
+        code: "EC-001-02", cat: "AUTH", sev: "high",
+        title: "Invalid Credentials & Brute-Force Rate Limit",
+        desc: "User enters wrong password 5 consecutive times on /sign-in.",
+        navTitle: "SIGN IN · LOCKED",
+        ui: `
+          <div style="background:#fff0ef;border:1px solid rgba(255,107,107,0.3);color:#e8555c;padding:8px 10px;border-radius:12px;font-size:10.5px;font-weight:700;margin-bottom:8px;">
+            Too many failed attempts. Try again in 04:59 or reset your password.
+          </div>
+          <div class="ec-mini-btn outline">Reset Password</div>
+        `,
+        fix: "Temporary 5-minute cooldown after 5 failed attempts; keeps Reset Password CTA active."
+      },
+      {
+        code: "EC-001-03", cat: "AUTH", sev: "norm",
+        title: "Unverified Email & Resend Cooldown",
+        desc: "User signs up with Email/Password and tries to proceed before clicking verification link.",
+        navTitle: "VERIFY EMAIL",
+        ui: `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11.5px;font-weight:800;">Check Your Inbox</span>
+            <span style="background:#e7f9f7;color:#258a83;padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:800;">SENT</span>
+          </div>
+          <div style="font-size:10.5px;color:#76727d;line-height:1.4;">Verification link sent to ksenia@itsalive.app. Resend available in 45s.</div>
+          <div class="ec-mini-btn mint">I've Verified My Email</div>
+        `,
+        fix: "60-second anti-spam timer on Resend Email; auto-advances once verified token is detected."
+      },
+      {
+        code: "EC-001-04", cat: "AUTH", sev: "high",
+        title: "Offline / Timeout During Sign-In or OAuth",
+        desc: "Network connection drops mid-authentication.",
+        navTitle: "OFFLINE",
+        ui: `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11.5px;font-weight:800;">Unable to Connect</span>
+            <span style="background:#fef9e7;color:#9a6700;padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:800;">NO NETWORK</span>
+          </div>
+          <div style="font-size:10.5px;color:#76727d;line-height:1.4;">Check your Wi-Fi or mobile data connection and retry sign-in.</div>
+          <div class="ec-mini-btn">Retry Connection</div>
+        `,
+        fix: "Preserves typed email in form state and retries idempotently without clearing user input."
+      },
+
+      // ONBOARDING & PROFILE (3)
+      {
+        code: "EC-001-05", cat: "ONB", sev: "norm",
+        title: "Duplicate Username / Invalid Characters",
+        desc: "User types an already-taken handle or disallowed symbols on /onboarding/profile.",
+        navTitle: "PROFILE · HANDLE",
+        ui: `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:12px;border:1.5px solid #ff6b6b;background:#fffafa;font-size:11.5px;font-weight:700;">
+            <span>@ksenia</span>
+            <span style="color:#e8555c;font-size:10px;">Already taken</span>
+          </div>
+          <div style="font-size:10.5px;color:#76727d;margin-top:6px;">Suggested available handles: <b style="color:#258a83;">@ksenia_42</b> · <b style="color:#258a83;">@ksenia.ia</b></div>
+        `,
+        fix: "Debounced 300ms uniqueness check; suggests 2 instant available alternatives."
+      },
+      {
+        code: "EC-001-06", cat: "ONB", sev: "norm",
+        title: "Oversized Photo or Camera/Gallery Denied",
+        desc: "User uploads a >10MB avatar image or denies photo picker permission.",
+        navTitle: "AVATAR UPLOAD",
+        ui: `
+          <div style="font-size:11.5px;font-weight:800;margin-bottom:4px;">Avatar Auto-Compressed</div>
+          <div style="font-size:10.5px;color:#76727d;line-height:1.4;">Image resized to 512×512 WebP (180 KB). Or pick any pastel color preset below.</div>
+          <div class="ec-mini-btn outline">Use Color Preset</div>
+        `,
+        fix: "Client compresses avatars to 512px WebP; falls back cleanly to pastel initial avatars if denied."
+      },
+      {
+        code: "EC-001-07", cat: "ONB", sev: "high",
+        title: "App Killed Mid-Onboarding (State Resume)",
+        desc: "User completes Profile Setup (Step 1/2) and force-closes the app before Pairing.",
+        navTitle: "RESUME SETUP",
+        ui: `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11.5px;font-weight:800;">Welcome Back, Ksenia</span>
+            <span style="background:#e7f9f7;color:#258a83;padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:800;">STEP 2/2</span>
+          </div>
+          <div style="font-size:10.5px;color:#76727d;">Profile saved. Resuming directly at room pairing so you don't repeat onboarding.</div>
+        `,
+        fix: "Onboarding checkpoint persisted in user profile; routes directly to /pair/create."
+      },
+
+      // PAIRING & ROOM CODES (5)
+      {
+        code: "EC-001-08", cat: "PAIR", sev: "crit",
+        title: "Host Attempts Self-Join with Own Room Code",
+        desc: "Host enters their own 6-digit invite code into /pair/join.",
+        navTitle: "JOIN · BLOCKED",
+        ui: `
+          <div style="background:#fff0ef;border:1px solid rgba(255,107,107,0.35);color:#e8555c;padding:8px 10px;border-radius:12px;font-size:10.5px;font-weight:700;">
+            You cannot join your own room (482–910). Share this code with your partner instead.
+          </div>
+          <div class="ec-mini-btn">Back to My Room Code</div>
+        `,
+        fix: "Validated on both client & backend (hostId !== guestId); prevents 1-person self-paired rooms."
+      },
+      {
+        code: "EC-001-09", cat: "PAIR", sev: "high",
+        title: "Invite Code Expired (> 24h) or Revoked",
+        desc: "Partner submits a 6-digit code after 24 hours or after host regenerated a new code.",
+        navTitle: "CODE EXPIRED",
+        ui: `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11.5px;font-weight:800;">Code 482–910 Expired</span>
+            <span style="background:#fef9e7;color:#9a6700;padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:800;">24H TTL</span>
+          </div>
+          <div style="font-size:10.5px;color:#76727d;line-height:1.4;">Invite codes expire after 24 hours for security. Ask your partner for their updated code.</div>
+          <div class="ec-mini-btn outline">Clear &amp; Enter New Code</div>
+        `,
+        fix: "Old code is immediately invalidated upon regeneration or 24h expiry."
+      },
+      {
+        code: "EC-001-10", cat: "PAIR", sev: "crit",
+        title: "Third Person Tries to Join Full 1-on-1 Room",
+        desc: "Two guests race to join or a 3rd user enters an active couple's room code.",
+        navTitle: "ROOM FULL · 2/2",
+        ui: `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11.5px;font-weight:800;">Room Already Paired</span>
+            <span style="background:#fff0ef;color:#e8555c;padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:800;">ROOM_FULL</span>
+          </div>
+          <div style="font-size:10.5px;color:#76727d;line-height:1.4;">ItsAlive rooms are strictly 1-on-1 (maximum 2 members). This space is already full.</div>
+          <div class="ec-mini-btn">Create My Own Room</div>
+        `,
+        fix: "Server-side atomic transaction guarantees count(members) <= 2; second caller gets ROOM_FULL."
+      },
+      {
+        code: "EC-001-11", cat: "PAIR", sev: "norm",
+        title: "Android Deep Link Auto-Fill on Cold Start",
+        desc: "Partner taps an invite link (itsalive://join/482910) before installing or logging in.",
+        navTitle: "DEEP LINK INVITE",
+        ui: `
+          <div style="background:#e7f9f7;color:#258a83;padding:8px 10px;border-radius:12px;font-size:10.5px;font-weight:700;margin-bottom:6px;">
+            Invite link detected: Code 482–910 from Ksenia
+          </div>
+          <div style="font-size:10.5px;color:#76727d;">Code preserved through Sign-Up &amp; Profile setup for one-tap pairing.</div>
+        `,
+        fix: "Deferred deep link token stored in session state until auth + profile setup complete."
+      },
+      {
+        code: "EC-001-12", cat: "PAIR", sev: "high",
+        title: "Host Cancels Waiting Room / Regenerates Code",
+        desc: "Host taps Close (✕) or regenerates code while waiting for partner to join.",
+        navTitle: "REGENERATE CODE",
+        ui: `
+          <div style="font-size:11.5px;font-weight:800;margin-bottom:4px;">Generate New Room Code?</div>
+          <div style="font-size:10.5px;color:#76727d;line-height:1.4;">Your previous code (482–910) will stop working immediately.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div class="ec-mini-btn outline">Keep Current</div>
+            <div class="ec-mini-btn">New Code</div>
+          </div>
+        `,
+        fix: "Confirmation prevents accidental invalidation right as the partner types the code."
+      }
+    ];
+
+    const grid = document.getElementById("edgeGrid");
+    const bar = document.getElementById("edgeFilterBar");
+
+    function renderEdges(cat) {
+      const items = cat === "ALL" ? EDGE_CASES_001 : EDGE_CASES_001.filter(e => e.cat === cat);
+      grid.innerHTML = items.map(item => {
+        const sevLabel = item.sev === "crit" ? "Critical" : item.sev === "high" ? "High" : "Edge";
+        const sevClass = item.sev === "crit" ? "sev-crit" : item.sev === "high" ? "sev-high" : "sev-norm";
+        return `
+          <article class="ec-ui-card">
+            <div class="ec-ui-header">
+              <span class="ec-code-tag">${item.code} · ${item.cat}</span>
+              <span class="sev-pill ${sevClass}">${sevLabel}</span>
+            </div>
+            <div class="ec-ui-title">${item.title}</div>
+            <div class="ec-ui-desc">${item.desc}</div>
+            <div class="ec-mini-phone">
+              <div class="ec-mini-topbar">
+                <span class="ec-mini-nav-icon" title="Back">‹</span>
+                <span style="font-size:9px;font-weight:800;letter-spacing:.06em;color:#76727d;">${item.navTitle}</span>
+                <span class="ec-mini-nav-icon" title="Close">✕</span>
+              </div>
+              <div class="ec-mini-surface">${item.ui}</div>
+            </div>
+            <div class="ec-rule-note"><b>System Behavior:</b> ${item.fix}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    bar.addEventListener("click", (e) => {
+      const btn = e.target.closest(".filter-btn");
+      if (!btn) return;
+      bar.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderEdges(btn.dataset.cat);
+    });
+
+    renderEdges("ALL");
+  </script>
+</body>
+</html>

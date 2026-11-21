@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ItsAlive — Design System & Full Screen Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --coral: #ff6b6b;
+      --coral-deep: #e9555c;
+      --coral-soft: #fff0ef;
+      --mint: #4ecdc4;
+      --mint-deep: #278f88;
+      --mint-soft: #e8faf8;
+      --yellow: #ffe66d;
+      --yellow-soft: #fff8dc;
+      --ink: #242129;
+      --muted: #74717b;
+      --line: #e9e7ea;
+      --surface: #ffffff;
+      --background: #fafafa;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--ink);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(36, 33, 41, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(36, 33, 41, .035) 1px, transparent 1px),
+        radial-gradient(circle at 9% 6%, rgba(255, 107, 107, .14), transparent 420px),
+        radial-gradient(circle at 92% 45%, rgba(78, 205, 196, .13), transparent 460px),
+        #f7f6f7;
+      background-size: 32px 32px, 32px 32px, auto, auto, auto;
+      padding: 48px clamp(20px, 4vw, 64px) 64px;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* Header & Tokens Bar */
+    .map-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      margin-bottom: 14px;
+      color: var(--coral-deep);
+      background: var(--coral-soft);
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .map-header h1 {
+      font-size: clamp(36px, 4.5vw, 56px);
+      line-height: 1.02;
+      letter-spacing: -.055em;
+      font-weight: 800;
+    }
+
+    .map-header p {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .legend-card {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 18px 22px;
+      border: 1px solid rgba(36, 33, 41, .08);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .82);
+      box-shadow: 0 12px 32px rgba(36, 33, 41, .05);
+      backdrop-filter: blur(10px);
+    }
+
+    .legend-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .legend-title {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #9e9aa3;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #5b5761;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 5px;
+      border: 1px solid rgba(0,0,0,.06);
+    }
+
+    /* Tokens Strip */
+    .tokens-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+
+    .token-box {
+      background: rgba(255, 255, 255, .85);
+      border: 1px solid rgba(36, 33, 41, .07);
+      border-radius: 20px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 24px rgba(36, 33, 41, .04);
+    }
+
+    .token-box h3 {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .palette-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .color-chip {
+      flex: 1;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: flex-end;
+      padding: 4px 6px;
+      font-size: 8px;
+      font-weight: 800;
+      border: 1px solid rgba(36,33,41,.08);
+    }
+
+    /* Flow Sections */
+    .flow-section {
+      background: rgba(255, 255, 255, .62);
+      border: 1px solid rgba(36, 33, 41, .08);
+      border-radius: 34px;
+      padding: 36px;
+      margin-bottom: 40px;
+      box-shadow: 0 24px 70px rgba(36, 33, 41, .06);
+      backdrop-filter: blur(12px);
+    }
+
+    .section-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed rgba(36, 33, 41, .12);
+    }
+
+    .section-badge h2 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-badge span {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .screens-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    /* Node Wrapper */
+    .node-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 266px;
+    }
+
+    .node-meta {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid rgba(36, 33, 41, .08);
+      border-radius: 20px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 28px rgba(36, 33, 41, .06);
+      position: relative;
+    }
+
+    .node-meta::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 18px;
+      width: 7px;
+      height: 26px;
+      border-radius: 99px;
+      background: var(--coral);
+    }
+
+    .node-meta.mint::before {
+      background: var(--mint);
+    }
+
+    .node-meta-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .node-id {
+      font-size: 10px;
+      font-weight: 800;
+      color: white;
+      background: var(--coral);
+      padding: 2px 7px;
+      border-radius: 7px;
+    }
+
+    .node-meta.mint .node-id {
+      background: var(--mint-deep);
+    }
+
+    .node-route {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--mint-deep);
+      background: var(--mint-soft);
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .node-meta h3 {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+
+    .node-meta p {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Connector Arrow between screens */
+    .flow-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      margin-top: 60px;
+      min-width: 78px;
+      gap: 6px;
+    }
+
+    .flow-arrow span {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      text-align: center;
+      background: white;
+      padding: 4px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--line);
+    }
+
+    .arrow-line {
+      width: 68px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--coral), var(--mint));
+      position: relative;
+    }
+
+    .arrow-line::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: -4px;
+      width: 9px;
+      height: 9px;
+      border-top: 2px solid var(--mint);
+      border-right: 2px solid var(--mint);
+      transform: rotate(45deg);
+    }
+
+    /* Scaled Phone Frame (393x852 scaled to 0.65 -> 255x554) */
+    .phone-viewport {
+      width: 256px;
+      height: 554px;
+      border-radius: 26px;
+      box-shadow: 0 22px 54px rgba(36, 33, 41, .16), 0 4px 12px rgba(36, 33, 41, .08);
+      overflow: hidden;
+      position: relative;
+      background: var(--background);
+      border: 1px solid rgba(36, 33, 41, .12);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+    .node-wrapper:hover .phone-viewport {
+      transform: translateY(-6px);
+      box-shadow: 0 28px 64px rgba(36, 33, 41, .22);
+    }
+
+    .phone-screen {
+      width: 393px;
+      height: 852px;
+      transform: scale(0.65);
+      transform-origin: top left;
+      position: relative;
+      overflow: hidden;
+      background: var(--background);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(145deg, rgba(255,255,255,.55), transparent 35%);
+      z-index: 0;
+    }
+
+    /* Exact UI Styles from index.css */
+    .status-bar {
+      height: 42px;
+      padding: 0 24px 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 5;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      flex-shrink: 0;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9px;
+    }
+
+    .signal { letter-spacing: -2px; transform: skewY(-10deg); }
+    .battery {
+      width: 19px;
+      height: 9px;
+      border: 1.5px solid currentColor;
+      border-radius: 3px;
+      position: relative;
+    }
+    .battery::before {
+      content: "";
+      position: absolute;
+      inset: 1.5px;
+      border-radius: 1px;
+      background: currentColor;
+    }
+    .battery::after {
+      content: "";
+      position: absolute;
+      width: 2px;
+      height: 4px;
+      background: currentColor;
+      right: -3.5px;
+      top: 1px;
+      border-radius: 0 2px 2px 0;
+    }
+
+    .gesture-bar {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 108px;
+      height: 4px;
+      background: #242129;
+      border-radius: 99px;
+      opacity: .85;
+      z-index: 10;
+    }
+
+    .brand-row {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 800;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-mark {
+      width: 29px;
+      height: 29px;
+      border-radius: 10px 10px 10px 4px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 11px;
+      letter-spacing: -.08em;
+      background: var(--coral);
+      transform: rotate(-4deg);
+      box-shadow: 0 5px 12px rgba(255, 107, 107, .28);
+    }
+
+    .start-screen {
+      background:
+        radial-gradient(circle at 84% 20%, rgba(255, 230, 109, .23), transparent 110px),
+        radial-gradient(circle at 12% 40%, rgba(78, 205, 196, .11), transparent 150px),
+        var(--background);
+    }
+
+    .egg-scene {
+      height: 302px;
+      margin: 0 24px;
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .egg-scene::before {
+      content: "";
+      position: absolute;
+      width: 232px;
+      height: 232px;
+      border-radius: 50%;
+      background: var(--mint-soft);
+      border: 1px dashed rgba(39, 143, 136, .23);
+    }
+
+    .egg-scene svg {
+      position: relative;
+      width: 226px;
+      height: 206px;
+      margin-top: 24px;
+      filter: drop-shadow(0 14px 16px rgba(47, 40, 48, .08));
+    }
+
+    .sparkle {
+      position: absolute;
+      z-index: 2;
+      color: #f7c84b;
+    }
+    .sparkle-one { top: 46px; right: 42px; font-size: 19px; }
+    .sparkle-two { top: 114px; left: 25px; font-size: 13px; color: var(--coral); }
+    .sparkle-three { right: 18px; bottom: 47px; font-size: 11px; color: var(--mint); }
+
+    .landing-copy {
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 99px;
+      color: var(--mint-deep);
+      background: var(--mint-soft);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      margin-bottom: 10px;
+    }
+
+    .screen-h1 {
+      font-size: 28px;
+      line-height: 1.2;
+      letter-spacing: -.045em;
+      font-weight: 800;
+    }
+
+    .landing-copy p {
+      margin-top: 10px;
+      max-width: 310px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .landing-actions {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 28px;
+      display: grid;
+      gap: 10px;
+      z-index: 3;
+    }
+
+    .btn-google, .btn-secondary, .btn-primary {
+      height: 56px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      width: 100%;
+    }
+
+    .btn-google, .btn-primary {
+      color: white;
+      background: var(--coral);
+      box-shadow: 0 10px 24px rgba(255, 107, 107, .27);
+    }
+
+    .btn-google svg {
+      padding: 3px;
+      box-sizing: content-box;
+      border-radius: 50%;
+      background: white;
+    }
+
+    .btn-secondary {
+      color: var(--mint-deep);
+      border: 1.5px solid var(--mint);
+      background: rgba(255,255,255,.76);
+    }
+
+    .prompt-text {
+      margin-top: 3px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .prompt-text b {
+      color: var(--coral-deep);
+      font-weight: 800;
+    }
+
+    .top-bar {
+      height: 56px;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 3;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: 0 4px 12px rgba(38, 34, 42, .05);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .text-btn {
+      color: var(--coral-deep);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .content-col {
+      flex: 1;
+      padding: 18px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header-symbol {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 16px;
+      font-size: 17px;
+      font-weight: 800;
+      transform: rotate(-5deg);
+    }
+    .coral-symbol { color: var(--coral); background: var(--coral-soft); }
+    .mint-symbol { color: var(--mint-deep); background: var(--mint-soft); }
+
+    .sub-p {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 320px;
+    }
+
+    .form-stack {
+      display: grid;
+      gap: 17px;
+      margin-top: 28px;
+    }
+
+    .field-shell {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field-label {
+      padding-left: 3px;
+      color: #48444d;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .field-control {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 5px 16px rgba(38, 34, 42, .035);
+      font-size: 14px;
+      color: #aaa7ae;
+      font-weight: 500;
+    }
+
+    .field-control.filled {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .strength-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 3px 0;
+      color: var(--mint-deep);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .strength-track { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .strength-track span { height: 4px; border-radius: 99px; background: #e4e2e5; }
+    .strength-track span.filled { background: var(--mint); }
+
+    .terms-row {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .custom-check {
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: var(--mint);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* Onboarding Tutorial Card */
+    .onboarding-intro {
+      padding: 0 24px;
+      background: radial-gradient(circle at 90% 8%, rgba(255, 230, 109, .2), transparent 140px), var(--background);
+    }
+
+    .intro-topbar {
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tutorial-card {
+      height: 550px;
+      position: relative;
+      overflow: hidden;
+      padding: 20px 20px 28px;
+      border: 1px solid rgba(38, 34, 42, .05);
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: 0 18px 48px rgba(38, 34, 42, .10);
+    }
+
+    .tutorial-card::before {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: var(--coral-soft);
+    }
+    .pet-slide::before { background: var(--mint-soft); }
+    .sync-slide::before { background: var(--yellow-soft); }
+
+    .tutorial-pill {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      padding: 7px 11px;
+      border-radius: 99px;
+      background: var(--coral-soft);
+      color: var(--coral-deep);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .pet-slide .tutorial-pill { color: var(--mint-deep); background: var(--mint-soft); }
+
+    .tutorial-art {
+      height: 332px;
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+    }
+
+    .photo-art { width: 240px; height: 240px; position: relative; }
+    .photo-sun { position: absolute; width: 94px; height: 94px; right: 12px; top: 20px; border-radius: 50%; background: #ffe66d; opacity: .7; }
+    .photo-card {
+      position: absolute; width: 126px; height: 160px; display: grid; place-items: center;
+      border: 7px solid white; border-radius: 26px; box-shadow: 0 14px 24px rgba(36, 33, 41, .12);
+    }
+    .photo-card-back { left: 26px; top: 29px; transform: rotate(-10deg); color: var(--mint-deep); background: var(--mint); font-size: 12px; font-weight: 800; }
+    .photo-card-front { right: 24px; top: 52px; transform: rotate(7deg); background: linear-gradient(145deg, #ffb8b8, var(--coral)); }
+    .camera-lens { width: 59px; height: 59px; display: grid; place-items: center; border: 9px solid white; border-radius: 50%; }
+    .camera-lens span { width: 13px; height: 13px; border-radius: 50%; background: white; }
+
+    /* Profile Screen */
+    .avatar-preview {
+      width: 96px; height: 96px; position: relative; padding: 5px; border-radius: 50%;
+      background: white; box-shadow: 0 10px 28px rgba(36,33,41,.12); margin: 14px auto 0;
+    }
+    .avatar-face { width: 100%; height: 100%; display: block; overflow: hidden; position: relative; border-radius: 50%; background: #ffd2c2; }
+    .avatar-hair { position: absolute; left: 12%; right: 12%; top: 9%; height: 48%; border-radius: 48% 48% 35% 35%; background: #4b3940; }
+    .avatar-eye { position: absolute; width: 6%; height: 8%; top: 52%; border-radius: 50%; background: #37343c; }
+    .eye-a { left: 34%; } .eye-b { right: 34%; }
+    .avatar-mouth { position: absolute; width: 16%; height: 7%; left: 42%; top: 67%; border-bottom: 2px solid #37343c; border-radius: 50%; }
+    .camera-badge {
+      position: absolute; width: 31px; height: 31px; right: -2px; bottom: 1px; display: grid; place-items: center;
+      color: white; border: 3px solid var(--background); border-radius: 12px; background: var(--coral); font-size: 13px;
+    }
+
+    /* Modals */
+    .modal-screen { background: #f8f7f8; }
+    .modal-ghost { padding: 25px 24px; opacity: .88; }
+    .ghost-orb { width: 150px; height: 150px; margin: 72px auto 38px; border-radius: 50%; background: var(--mint-soft); }
+    .ghost-line { width: 57%; height: 18px; margin: 14px auto; border-radius: 99px; background: #e4e1e5; }
+    .ghost-line.wide { width: 78%; height: 27px; }
+    .scrim { position: absolute; inset: 0; z-index: 8; background: rgba(18,18,20,.56); }
+    .material-dialog {
+      position: absolute; left: 20px; right: 20px; top: 50%; z-index: 9; transform: translateY(-50%);
+      padding: 28px 24px 22px; border-radius: 24px; background: var(--surface);
+      box-shadow: 0 28px 80px rgba(18,18,20,.32);
+    }
+    .dialog-icon {
+      width: 56px; height: 56px; display: grid; place-items: center; margin-bottom: 18px;
+      border-radius: 19px; transform: rotate(-4deg); font-size: 24px;
+    }
+
+    /* Footer */
+    .map-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Header -->
+    <header class="map-header">
+      <div>
+        <div class="kicker">ItsAlive · Design System & User Flow</div>
+        <h1>UI Kit &amp; Complete<br>Screen Architecture</h1>
+        <p>8 Screens · 393×852 px Viewport · Plus Jakarta Sans · Coral &amp; Mint Design Tokens</p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-group">
+          <div class="legend-title">Flow Semantics</div>
+          <div class="legend-item"><span class="swatch" style="background: var(--coral);"></span> Primary User Journey</div>
+          <div class="legend-item"><span class="swatch" style="background: var(--mint);"></span> Secondary / System State</div>
+        </div>
+        <div class="legend-group">
+          <div class="legend-title">Geometry Tokens</div>
+          <div class="legend-item">Frame: <b>393 × 852 px</b> (r: 34px)</div>
+          <div class="legend-item">Buttons &amp; Inputs: <b>h: 56–58px</b> (r: 18px)</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Design Tokens Strip -->
+    <section class="tokens-strip">
+      <div class="token-box">
+        <h3>Primary Coral Tokens</h3>
+        <div class="palette-row">
+          <div class="color-chip" style="background:#ff6b6b; color:white;">#FF6B6B</div>
+          <div class="color-chip" style="background:#e9555c; color:white;">#E9555C</div>
+          <div class="color-chip" style="background:#fff0ef; color:#e9555c;">#FFF0EF</div>
+        </div>
+      </div>
+      <div class="token-box">
+        <h3>Secondary Mint Tokens</h3>
+        <div class="palette-row">
+          <div class="color-chip" style="background:#4ecdc4; color:white;">#4ECDC4</div>
+          <div class="color-chip" style="background:#278f88; color:white;">#278F88</div>
+          <div class="color-chip" style="background:#e8faf8; color:#278f88;">#E8FAF8</div>
+        </div>
+      </div>
+      <div class="token-box">
+        <h3>Neutrals &amp; Surfaces</h3>
+        <div class="palette-row">
+          <div class="color-chip" style="background:#242129; color:white;">#242129</div>
+          <div class="color-chip" style="background:#74717b; color:white;">#74717B</div>
+          <div class="color-chip" style="background:#fafafa; color:#242129;">#FAFAFA</div>
+        </div>
+      </div>
+      <div class="token-box">
+        <h3>Typography Scale</h3>
+        <div style="font-size: 12px; line-height: 1.5; color: var(--ink);">
+          <div><b>H1:</b> 28px / 800 ExtraBold (-0.045em)</div>
+          <div><b>Body:</b> 14px / 400–600 (lh 1.6)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FLOW 1: AUTHENTICATION -->
+    <section class="flow-section">
+      <div class="section-badge">
+        <h2><span>01</span> Entry &amp; Authentication Flow</h2>
+        <span>Entry point → Sign In / Sign Up / Password Recovery</span>
+      </div>
+
+      <div class="screens-row">
+        <!-- Screen 1: StartScreen -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top">
+              <span class="node-id">ENTRY</span>
+              <span class="node-route">/welcome</span>
+            </div>
+            <h3>Start Screen</h3>
+            <p>Mascot egg scene &amp; auth options</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen start-screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="brand-row"><span class="brand-mark">ia</span><span>ItsAlive</span></div>
+              <div class="egg-scene">
+                <span class="sparkle sparkle-one">✦</span>
+                <span class="sparkle sparkle-two">✦</span>
+                <span class="sparkle sparkle-three">✦</span>
+                <svg viewBox="0 0 220 200">
+                  <ellipse cx="111" cy="183" rx="67" ry="9" fill="#2A2730" opacity=".08" />
+                  <path d="M58 116c5-52 28-88 53-88s48 36 53 88c5 49-17 68-53 68s-58-19-53-68Z" fill="#FFF" />
+                  <path d="M59 113c12 4 19-2 27 3 10 6 17-9 28-2 11 7 17-5 27 0 8 4 13-2 22-2 7 48-16 72-52 72-35 0-58-24-52-71Z" fill="#FF6B6B" />
+                  <path d="m77 72-17-25c-3-5 2-11 7-9 17 4 24 16 25 27" fill="#4ECDC4" stroke="#2E8F88" stroke-width="4" stroke-linejoin="round" />
+                  <path d="m145 70 16-23c3-5-2-11-8-9-16 5-23 17-24 28" fill="#4ECDC4" stroke="#2E8F88" stroke-width="4" stroke-linejoin="round" />
+                  <path d="M78 83c7-22 20-34 33-34s26 12 33 34" fill="#B9F0EC" />
+                  <path d="M90 85c2 0 4 2 4 5s-2 5-4 5-4-2-4-5 2-5 4-5Zm42 0c2 0 4 2 4 5s-2 5-4 5-4-2-4-5 2-5 4-5Z" fill="#37343C" />
+                  <path d="M105 98c3-3 9-3 12 0-1 5-3 7-6 7s-5-2-6-7Z" fill="#FF6B6B" />
+                  <path d="M111 104c0 7-9 9-12 3m12-3c0 7 9 9 12 3" fill="none" stroke="#37343C" stroke-width="3" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="landing-copy">
+                <span class="eyebrow">Made for two</span>
+                <h1 class="screen-h1">Small moments.<br>More us. 🐾</h1>
+                <p>A shared world for you and your favorite person.</p>
+              </div>
+              <div class="landing-actions">
+                <div class="btn-google">
+                  <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.8 3-4.4 3-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.5c-.9.6-2.1 1-3.4 1-2.6 0-4.9-1.8-5.7-4.2H2.9v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.3 13.9a6 6 0 0 1 0-3.8V7.5H2.9a10 10 0 0 0 0 9l3.4-2.6Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 2.9 7.5l3.4 2.6C7.1 7.7 9.4 5.9 12 5.9Z"/></svg>
+                  <span>Continue with Google</span>
+                </div>
+                <div class="btn-secondary">✉ Sign In with Email</div>
+                <p class="prompt-text">New here? <b>Create Account</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Email Sign In</span>
+          <div class="arrow-line"></div>
+        </div>
+
+        <!-- Screen 2: SignInScreen -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top">
+              <span class="node-id">AUTH 01</span>
+              <span class="node-route">/sign-in</span>
+            </div>
+            <h3>Sign In Screen</h3>
+            <p>Email + password &amp; security note</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="top-bar"><span class="icon-btn">←</span><span class="text-btn">Help</span></div>
+              <div class="content-col">
+                <span class="header-symbol coral-symbol">♥</span>
+                <h1 class="screen-h1">Welcome Back ❤️</h1>
+                <p class="sub-p">Your little world missed you. Sign in to pick up where you left off.</p>
+                <div class="form-stack">
+                  <div class="field-shell">
+                    <span class="field-label">Email</span>
+                    <div class="field-control">✉ &nbsp;you@example.com</div>
+                  </div>
+                  <div class="field-shell">
+                    <span class="field-label">Password</span>
+                    <div class="field-control" style="justify-content: space-between;"><span>🔒 &nbsp;Enter your password</span><span>👁</span></div>
+                  </div>
+                  <div style="text-align: right; color: var(--coral-deep); font-size: 12px; font-weight: 800; margin-top: -6px;">Forgot Password?</div>
+                  <div class="btn-primary">Sign In →</div>
+                </div>
+                <div style="margin-top: 18px; text-align: center; color: #98949c; font-size: 11px; font-weight: 600;">🛡 Your details are safe and encrypted</div>
+                <p class="prompt-text" style="margin-top: auto; margin-bottom: 14px;">Don't have an account? <b>Sign Up</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>New User</span>
+          <div class="arrow-line"></div>
+        </div>
+
+        <!-- Screen 3: SignUpScreen -->
+        <div class="node-wrapper">
+          <div class="node-meta mint">
+            <div class="node-meta-top">
+              <span class="node-id">AUTH 02</span>
+              <span class="node-route">/sign-up</span>
+            </div>
+            <h3>Create Account</h3>
+            <p>Password strength bar &amp; terms</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="top-bar"><span class="icon-btn">←</span></div>
+              <div class="content-col">
+                <span class="header-symbol mint-symbol">✦</span>
+                <h1 class="screen-h1">Create Your<br>Account ✨</h1>
+                <p class="sub-p">Start your shared journey together.</p>
+                <div class="form-stack" style="margin-top: 22px; gap: 15px;">
+                  <div class="field-shell">
+                    <span class="field-label">Email</span>
+                    <div class="field-control">✉ &nbsp;you@example.com</div>
+                  </div>
+                  <div class="field-shell">
+                    <span class="field-label">Password</span>
+                    <div class="field-control filled" style="justify-content: space-between;"><span>🔒 &nbsp;••••••••••</span><span>👁</span></div>
+                    <div class="strength-row">
+                      <div class="strength-track"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span></div>
+                      <span>Strong</span>
+                    </div>
+                  </div>
+                  <div class="terms-row">
+                    <span class="custom-check">✓</span>
+                    <span>I agree to <b style="color: var(--coral-deep);">Privacy Policy</b> &amp; <b style="color: var(--coral-deep);">Terms of Service</b></span>
+                  </div>
+                  <div class="btn-primary">Create Account →</div>
+                </div>
+                <p class="prompt-text" style="margin-top: auto; margin-bottom: 14px;">Already have an account? <b>Sign In</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Forgot Pass</span>
+          <div class="arrow-line"></div>
+        </div>
+
+        <!-- Screen 4: ForgotPasswordScreen -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top">
+              <span class="node-id">AUTH 03</span>
+              <span class="node-route">/forgot-password</span>
+            </div>
+            <h3>Reset Password</h3>
+            <p>Key orbit banner &amp; reset link</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="top-bar"><span class="icon-btn">←</span></div>
+              <div class="content-col" style="text-align: center;">
+                <div style="width: 104px; height: 104px; margin: 16px auto 24px; border-radius: 34px; background: var(--coral-soft); color: var(--coral-deep); display: grid; place-items: center; font-size: 36px; transform: rotate(-3deg); box-shadow: 0 12px 30px rgba(255,107,107,.12);">🔑</div>
+                <h1 class="screen-h1">Reset Password</h1>
+                <p class="sub-p" style="margin: 12px auto 0;">Enter your registered email and we’ll send password reset instructions.</p>
+                <div class="form-stack" style="text-align: left; margin-top: 34px;">
+                  <div class="field-shell">
+                    <span class="field-label">Email</span>
+                    <div class="field-control">✉ &nbsp;you@example.com</div>
+                  </div>
+                  <div class="btn-primary">Send Reset Link →</div>
+                </div>
+                <p class="prompt-text" style="margin-top: 24px;">Remembered your password? <b>Sign In</b></p>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FLOW 2: ONBOARDING & SYSTEM MODALS -->
+    <section class="flow-section">
+      <div class="section-badge">
+        <h2><span>02</span> Onboarding &amp; System Exception Flow (AI Handoff Map)</h2>
+        <span>Tutorial Carousel → Profile Setup → Account Exists / Auth Error Modals</span>
+      </div>
+
+      <div class="screens-row">
+        <!-- Node 01: Onboarding Intro -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top">
+              <span class="node-id">01</span>
+              <span class="node-route">/onboarding</span>
+            </div>
+            <h3>Onboarding Intro</h3>
+            <p>3-slide tutorial carousel</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen onboarding-intro">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="intro-topbar">
+                <span style="font-size: 13px; font-weight: 800;">01<span style="color:#aaa6ae;">/03</span></span>
+                <span style="color: var(--coral-deep); font-size: 13px; font-weight: 800;">Skip</span>
+              </div>
+              <div class="tutorial-card">
+                <span class="tutorial-pill">Together, every day</span>
+                <div class="tutorial-art">
+                  <div class="photo-art">
+                    <span class="photo-sun"></span>
+                    <div class="photo-card photo-card-back"><span>Today</span></div>
+                    <div class="photo-card photo-card-front"><span class="camera-lens"><span></span></span></div>
+                  </div>
+                </div>
+                <div style="position: relative; z-index: 2;">
+                  <h1 class="screen-h1">1 Photo a Day 📸</h1>
+                  <p style="margin-top: 10px; color: var(--muted); font-size: 14px; line-height: 1.6;">Snap a photo during the active hour to build your streak.</p>
+                </div>
+              </div>
+              <div style="height: 62px; display: flex; align-items: center; justify-content: center; gap: 18px;">
+                <span style="width: 24px; height: 7px; border-radius: 99px; background: var(--coral);"></span>
+                <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+                <span style="width: 7px; height: 7px; border-radius: 99px; background: #d8d5da;"></span>
+              </div>
+              <div class="btn-primary">Get Started →</div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Get Started</span>
+          <div class="arrow-line"></div>
+        </div>
+
+        <!-- Node 02: Profile Personalisation -->
+        <div class="node-wrapper">
+          <div class="node-meta mint">
+            <div class="node-meta-top">
+              <span class="node-id">02</span>
+              <span class="node-route">/onboarding/profile</span>
+            </div>
+            <h3>Profile Personalisation</h3>
+            <p>Avatar presets, name &amp; nickname</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="top-bar"><span class="icon-btn">←</span><span style="color:#95919a; font-size: 11px; font-weight: 700;">Step 1 of 2</span></div>
+              <div class="content-col" style="padding-top: 4px;">
+                <span class="eyebrow" style="width: fit-content;">Make it yours</span>
+                <h1 class="screen-h1">Complete Your<br>Profile ✨</h1>
+                <p style="margin-top: 6px; color: var(--muted); font-size: 13px;">Tell your partner who you are.</p>
+                <div class="avatar-preview">
+                  <span class="avatar-face">
+                    <span class="avatar-hair"></span>
+                    <span class="avatar-eye eye-a"></span>
+                    <span class="avatar-eye eye-b"></span>
+                    <span class="avatar-mouth"></span>
+                  </span>
+                  <span class="camera-badge">📷</span>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 14px;">
+                  <span style="width: 36px; height: 36px; border-radius: 50%; background: #ffd2c2; border: 2px solid var(--coral);"></span>
+                  <span style="width: 36px; height: 36px; border-radius: 50%; background: #b9f0ec;"></span>
+                  <span style="width: 36px; height: 36px; border-radius: 50%; background: #ffe99a;"></span>
+                  <span style="width: 36px; height: 36px; border-radius: 50%; background: #c8c4f3;"></span>
+                </div>
+                <div class="form-stack" style="margin-top: 18px; gap: 13px;">
+                  <div class="field-shell">
+                    <div style="display:flex; justify-content:space-between; font-size:11px;"><b style="color:#48444d;">Your Name</b><span style="color:#99959e;">6/30</span></div>
+                    <div class="field-control filled" style="height: 50px;">✨ &nbsp;Ksenia</div>
+                  </div>
+                  <div class="field-shell">
+                    <div style="display:flex; justify-content:space-between; font-size:11px;"><b style="color:#48444d;">Username / Nickname</b><span style="color:var(--mint-deep); font-weight:800;">✓ Available</span></div>
+                    <div class="field-control filled" style="height: 50px; border-color: rgba(78,205,196,.65); justify-content: space-between;"><span>@ &nbsp;ksenia_42</span><span style="color:var(--mint-deep);">✓</span></div>
+                  </div>
+                  <div class="btn-primary" style="height: 52px;">Save Profile &amp; Continue →</div>
+                </div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Branch 3A</span>
+          <div class="arrow-line"></div>
+        </div>
+
+        <!-- Node 03A: Account Exists Modal -->
+        <div class="node-wrapper">
+          <div class="node-meta">
+            <div class="node-meta-top">
+              <span class="node-id">03A</span>
+              <span class="node-route">/account-exists</span>
+            </div>
+            <h3>Account Exists Modal</h3>
+            <p>Google account reconciliation</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen modal-screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="modal-ghost">
+                <div class="brand-row" style="padding:0;"><span class="brand-mark">ia</span></div>
+                <div class="ghost-orb"></div>
+                <div class="ghost-line wide"></div>
+                <div class="ghost-line"></div>
+              </div>
+              <div class="scrim"></div>
+              <div class="material-dialog">
+                <div class="dialog-icon" style="background: var(--coral-soft); color: var(--coral-deep);">🔑</div>
+                <div style="color: var(--mint-deep); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;">We found you</div>
+                <h1 class="screen-h1" style="font-size: 25px; margin-top: 7px;">Account Already<br>Exists 🔑</h1>
+                <p style="margin-top: 12px; color: var(--muted); font-size: 13px; line-height: 1.65;">An account with this email was previously created with Google Sign-In.</p>
+                <div class="btn-google" style="margin-top: 24px; height: 54px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.8 3-4.4 3-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.5c-.9.6-2.1 1-3.4 1-2.6 0-4.9-1.8-5.7-4.2H2.9v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.3 13.9a6 6 0 0 1 0-3.8V7.5H2.9a10 10 0 0 0 0 9l3.4-2.6Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 2.9 7.5l3.4 2.6C7.1 7.7 9.4 5.9 12 5.9Z"/></svg>
+                  <span>Sign In with Google</span>
+                </div>
+                <div style="text-align: center; margin-top: 16px; color: var(--coral-deep); font-size: 12px; font-weight: 800;">Use Different Email</div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">
+          <span>Branch 3B</span>
+          <div class="arrow-line"></div>
+        </div>
+
+        <!-- Node 03B: Auth Error Modal -->
+        <div class="node-wrapper">
+          <div class="node-meta mint">
+            <div class="node-meta-top">
+              <span class="node-id">03B</span>
+              <span class="node-route">/auth-error</span>
+            </div>
+            <h3>Auth Error Modal</h3>
+            <p>Retry or resend verification</p>
+          </div>
+          <div class="phone-viewport">
+            <div class="phone-screen modal-screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons"><span class="signal">▮▮▮</span><span>◉</span><span class="battery"></span></div>
+              </div>
+              <div class="modal-ghost">
+                <div class="brand-row" style="padding:0;"><span class="brand-mark">ia</span></div>
+                <div class="ghost-orb"></div>
+                <div class="ghost-line wide"></div>
+                <div class="ghost-line"></div>
+              </div>
+              <div class="scrim"></div>
+              <div class="material-dialog">
+                <div class="dialog-icon" style="background: var(--mint-soft); color: var(--mint-deep);">📶</div>
+                <div style="color: var(--mint-deep); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;">Connection issue</div>
+                <h1 class="screen-h1" style="font-size: 25px; margin-top: 7px;">Unable to Sign In 📶</h1>
+                <p style="margin-top: 12px; color: var(--muted); font-size: 13px; line-height: 1.65;">Please check your internet connection or verify your email inbox.</p>
+                <div class="btn-primary" style="margin-top: 24px; height: 54px;">↻ &nbsp;Retry</div>
+                <div style="text-align: center; margin-top: 16px; color: var(--coral-deep); font-size: 12px; font-weight: 800;">➤ &nbsp;Resend Verification Email</div>
+              </div>
+              <div class="gesture-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="map-footer">
+      <div style="display:flex; align-items:center; gap:10px; color: var(--ink);">
+        <span class="brand-mark">ia</span>
+        <b>ItsAlive Design System Map</b>
+      </div>
+      <div>Generated from App.tsx, index.css &amp; routes.tsx</div>
+    </footer>
+  </div>
+</body>
+</html>

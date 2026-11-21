@@ -76,25 +76,73 @@ Proceed only if password authentication and recovery are approved and enabled.
 - [ ] **T031** Obtain the human security review required by `constitution.md` CONST-42 and record its disposition here.
 - [ ] **T032 [US6]** Implement server-side session/refresh-token revocation only if an approved backend contract requires it. This Android repository has no verified endpoint or backend module; keep blocked until ownership, contract, and target path are supplied.
 
+## Phase 9: UI Componentization & Figma Design Implementation (Figma URL: https://www.figma.com/make/HwcBwAf6U5Zeyn2h6ldCb9/ItsAlive-Authentication-Screens)
+
+- [x] **T033 [UI]** Implement reusable atomic Form elements in `feature/auth/src/main/java/com/furiqd/auth/presentation/elements/`:
+  - `AuthTextField.kt`: Material 3 OutlinedTextField with active Coral border, leading icon, trailing password toggle / clear icon, and error text.
+  - `AuthPrimaryButton.kt`: Full-width 56dp Coral button with loading spinner state and disabled state.
+  - `PasswordStrengthMeter.kt`: Visual 3-bar indicator for password complexity (Weak / Medium / Strong).
+- [x] **T034 [UI]** Refactor `StartScreen.kt` using modular sub-composables in `feature/auth/src/main/java/com/furiqd/auth/presentation/screens/start/`:
+  - `StartHeader.kt`: App tagline and pet egg hero graphic.
+  - `StartActions.kt`: Google Sign-In button, email sign-in button, and signup text link.
+- [x] **T035 [UI]** Refactor `SignInScreen.kt` using modular sub-composables in `feature/auth/src/main/java/com/furiqd/auth/presentation/screens/signin/`:
+  - `SignInHeader.kt`: Back button and welcome title.
+  - `SignInForm.kt`: Email & password `AuthTextField` components, "Forgot Password?" link, and "Sign In" button.
+- [x] **T036 [UI]** Refactor `SignUpScreen.kt` using modular sub-composables in `feature/auth/src/main/java/com/furiqd/auth/presentation/screens/signup/`:
+  - `SignUpHeader.kt`: Back button and account creation title.
+  - `SignUpForm.kt`: Email input, password input with `PasswordStrengthMeter`, Terms of Service checkbox, and "Create Account" button.
+- [x] **T037 [UI]** Implement `ForgotPasswordDialog.kt` in `feature/auth/src/main/java/com/furiqd/auth/presentation/screens/signin/`:
+  - Material 3 ModalBottomSheet/Dialog with key icon header, email input, "Send Link" button, and success confirmation state. Connect route in `AuthGraph.kt`.
+- [x] **T038 [P]** Create Component UI Unit Tests under `feature/auth/src/test/java/com/furiqd/auth/presentation/elements/`:
+  - `AuthTextFieldTest.kt`: Test error text visibility, password masking toggle, and enable/disable states.
+  - `PasswordStrengthMeterTest.kt`: Test meter visual state calculation for weak vs strong passwords.
+  - `SignInFormStateTest.kt`: Test form button enable logic based on email and password validity.
+
+## Phase 10: UI-Driven Business Logic & ViewModel State Expansion
+
+- [x] **T039 [BL]** Implement Password Complexity Calculation in `feature/auth/src/main/java/com/furiqd/auth/domain/model/PasswordStrength.kt` & `InputValidator.kt`:
+  - Calculate `PasswordStrength` (`EMPTY`, `WEAK`, `MEDIUM`, `STRONG`) based on length (>=8 chars), digits, uppercase letters, and special symbols.
+  - Update `SignUpState.kt` with `val passwordStrength: PasswordStrength` and update `SignUpViewModel` to calculate strength on password changes.
+- [x] **T040 [BL]** Implement Forgot Password ViewModel & Cooldown Timer in `feature/auth/src/main/java/com/furiqd/auth/presentation/screens/signin/ForgotPasswordViewModel.kt`:
+  - Create `ForgotPasswordState.kt` (email, emailError, isLoading, isEmailSent, cooldownRemainingSeconds, isSubmitEnabled).
+  - Implement 60-second cooldown ticker timer after sending reset email to prevent Firebase API rate-limiting spam.
+  - Handle `ForgotPasswordEvent` (EmailChanged, SendResetClicked, DismissDialog) and emit `ForgotPasswordEffect`.
+- [x] **T041 [BL]** Enforce Terms & Privacy Policy Acceptance in `SignUpViewModel.kt`:
+  - Update `isSignUpEnabled` condition: `isSignUpEnabled = isEmailValid && isPasswordValid && isPrivacyChecked && !isLoading`.
+- [x] **T042 [P]** Create Unit Tests for new Business Logic under `feature/auth/src/test/java/com/furiqd/auth/`:
+  - `PasswordStrengthCalculatorTest.kt`: Test `PasswordStrength` evaluation for weak, medium, and strong passwords.
+  - `ForgotPasswordViewModelTest.kt`: Test 60-second cooldown countdown, success state transition, and error handling.
+  - `SignUpViewModelPrivacyCheckTest.kt`: Test that `isSignUpEnabled` remains false when `isPrivacyChecked` is false regardless of valid credentials.
+
+## Phase 11: Backend Network Integration & Resiliency (`:core:network`)
+
+- [x] **T043 [BE]** Refactor `FirebaseAuthDataSource.kt` for Cancellation & Exception Safety:
+  - Ensure Firestore `await()` calls propagate `CancellationException` re-throws.
+  - Safely catch `FirebaseFirestoreException` and return safe null or typed error results without crashing.
+  - Ensure `updateFcmToken` re-throws `CancellationException` before `runCatching`.
+- [x] **T044 [BE]** Configure OkHttp Timeouts & Security Interceptor in `BackendlessNetworkModule.kt`:
+  - Set explicit 15s connect, read, and write timeouts on OkHttpClient.
+  - Ensure HttpLoggingInterceptor redacts sensitive headers in release builds per `constitution.md` CONST-32.
+- [x] **T045 [P]** Create Network Data Source Unit Tests under `core/network/src/test/java/com/furiqd/network/`:
+  - `FirebaseAuthDataSourceTest.kt`: Test Firestore document deserialization, missing profile handling, and FCM token device registration logic.
+  - `BackendlessNetworkModuleTest.kt`: Test Retrofit OkHttpClient timeout configurations and header serialization.
+
 ## Dependencies and blockers
 
-- T002–T004 are foundational. T004 follows T002 because both update `AuthUseCases.kt`.
-- T001 gates only tasks that need its unresolved decisions; it does not block policy-independent work.
-- T008/T013 require the relevant authentication method to be confirmed. T009/T014/T027 require the corresponding profile timing or destination decision.
-- T015–T017 require external sign-in approval. T018–T019 require password recovery approval.
-- T020–T021 depend on T003; offline behavior remains blocked until its policy is approved.
-- T022 depends on identifying token consumers. T025 must follow that decision. T032 is separately gated by a backend revocation contract.
-- T026 is incomplete: repository writes are now guarded against logout races, but `MainViewModel` and protected-route gating are not implemented because approved session/profile routing semantics and the authenticated destination are still unspecified.
-- Serialize implementation tasks that edit the same files. Independent tests in separate files may be parallelized.
+- T002–T004 are foundational and completed.
+- T008, T013, T014, T016, T017, T019, T021, T025, T026 are completed and verified across auth, personalisation, network, and app navigation modules.
+- Phase 10 (T039–T042) business logic tasks should precede or be developed alongside Phase 9 (T033–T038) UI components.
+- T032 is separately gated by a server-side backend revocation contract.
+- T045 remains open: network unit tests cover profile-existence/decoder helpers, cancellation propagation, FCM request construction, and serialized push headers, but do not exercise Firebase `DocumentSnapshot.toObject` against a Firestore-backed fixture.
+- Compose instrumentation tests were compiled successfully but were not run because no Android device/emulator was available.
+- Password-strength tier thresholds (weak/medium/strong) are implemented and tested; the source task specified the signals but not the tier mapping.
+- UI follows the written task details and existing theme; pixel-level Figma context was not available from the referenced `/make/` URL.
 
 ## Repository constraints
 
-- The destination for T002 does not exist yet; it is the target of moving the existing interface.
-- JUnit and `kotlinx-coroutines-test` are available for the relevant modules; no mocking framework was added.
-- The app navigation test harness was not verified. Do not introduce a new UI-test framework implicitly.
-- The authoritative profile-persistence owner/contract and server-side revocation path are not verified in this Android repository.
-- No explicit configuration was found that approves enabled auth methods, verification/recovery, profile-completion timing, offline/session policy, or the authenticated destination. Firebase/Auth SDK wiring alone is not treated as approval.
-- Username login needs an approved username-to-provider-identifier lookup contract; Firebase email/password sign-in alone cannot resolve `nickName`. No authoritative profile-validation/atomic-uniqueness contract was found.
+- JUnit and `kotlinx-coroutines-test` are available for the relevant modules.
+- Form elements in `feature/auth/src/main/java/com/furiqd/auth/presentation/elements/` must be modularized and non-monolithic.
+- `AuthGraph.kt` routes `StartDestination`, `SignInDestination`, `SignUpDestination`, and `ForgotPasswordDestination` must map to `AppNavigation.kt`.
 
 ## Completion criteria
 

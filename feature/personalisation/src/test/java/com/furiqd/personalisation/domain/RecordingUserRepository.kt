@@ -32,6 +32,7 @@ internal class RecordingUserRepository(
     }
     override suspend fun getUserById(userId: String): User? = null
     override suspend fun updateFcmToken(token: String): Result<Unit> = unsupported()
+    override suspend fun isNickNameAvailable(nickName: String): Boolean = true
 
     private fun unsupported(): Result<Unit> =
         Result.failure(UnsupportedOperationException())

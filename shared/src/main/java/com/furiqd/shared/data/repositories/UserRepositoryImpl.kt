@@ -250,6 +250,10 @@ class UserRepositoryImpl @Inject constructor(
         remoteDataSource.updateFcmToken(userId, token)
     }
 
+    override suspend fun isNickNameAvailable(nickName: String): Boolean {
+        return remoteDataSource.isNickNameAvailable(nickName)
+    }
+
     private suspend fun <T> resultOf(block: suspend () -> T): Result<T> = try {
         Result.success(block())
     } catch (cancellation: CancellationException) {

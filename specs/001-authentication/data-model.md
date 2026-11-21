@@ -43,6 +43,14 @@ Remote DTOs, domain models, and local entities remain distinct and are mapped at
 
 A locally cached profile may support the returning-user experience only under the approved offline policy. It must be scoped to its canonical identity, must not be shown as belonging to another account, and must not be interpreted as proof of fresh provider validation.
 
+### Password Complexity & Forgot Password States
+
+| State / Model | Purpose |
+|---|---|
+| `PasswordStrength` (`EMPTY`, `WEAK`, `MEDIUM`, `STRONG`) | Domain evaluation of password complexity score calculated from length (>=8 chars), digits, uppercase letters, and special symbols. |
+| `ForgotPasswordState` | Presentation state for password recovery containing `email`, `emailError`, `isLoading`, `isEmailSent`, `cooldownRemainingSeconds` (60s ticker), and `isSubmitEnabled`. |
+| `SignUpState.isPrivacyChecked` | Boolean flag enforcing user acceptance of Terms of Service & Privacy Policy before enabling sign-up. |
+
 ## Relationships
 
 - One provider identity maps to at most one app profile for the same canonical UID.

@@ -30,25 +30,27 @@ object RemoteDataSourceModule {
 
     @Provides
     @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
+    fun provideOkHttpClient(): OkHttpClient {
+        return createOkHttpClient()
     }
 
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor())
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
+    internal fun createOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .addInterceptor(createLoggingInterceptor())
             .build()
-    }
+
+    internal fun createLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.NONE
+            redactHeader("Authorization")
+            redactHeader("Cookie")
+            redactHeader("Set-Cookie")
+            redactHeader("X-Backendless-REST-Token")
+            redactHeader("X-API-Key")
+        }
 
     @Provides
     @Singleton

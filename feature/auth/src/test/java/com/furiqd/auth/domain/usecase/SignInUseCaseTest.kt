@@ -126,4 +126,5 @@ private class FakeUserRepository(
     override suspend fun updateUser(user: User): Result<Unit> = Result.failure(UnsupportedOperationException())
     override suspend fun getUserById(userId: String): User? = null
     override suspend fun updateFcmToken(token: String): Result<Unit> = Result.failure(UnsupportedOperationException())
+    override suspend fun isNickNameAvailable(nickName: String): Boolean = true
 }

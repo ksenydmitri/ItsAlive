@@ -10,9 +10,10 @@
     <string name="onboarding_title">Lets know who you are</string>
     <string name="onboarding_input_label">Provide your name…</string>
     <string name="onboarding_input_placeholder">e.g., Ignis</string>
-    <string name="onboarding_error_nickname_length">Name must be between 2 and 15 characters</string>
+    <string name="onboarding_error_name">Name must be between 2 and 30 characters</string>
+    <string name="onboarding_error_nickname">Username must be between 2 and 24 characters (a-z, 0-9, _, .)</string>
     <string name="onboarding_section_avatar">Choose an appearance</string>
-    <string name="onboarding_btn_action">Bring to Life!</string>
+    <string name="onboarding_btn_action">Save Profile &amp; Continue →</string>
 
     <string name="onboarding_cd_selected_avatar">Selected avatar preview</string>
     <string name="onboarding_cd_avatar_option">Avatar choice option %1$d</string>

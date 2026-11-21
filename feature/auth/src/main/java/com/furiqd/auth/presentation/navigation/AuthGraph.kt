@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.furiqd.auth.presentation.screens.signin.SignInRoute
+import com.furiqd.auth.presentation.screens.signin.ForgotPasswordRoute
 import com.furiqd.auth.presentation.screens.signup.SignUpRoute
 import com.furiqd.auth.presentation.screens.start.StartRoute
 
@@ -15,7 +16,8 @@ fun NavGraphBuilder.authGraph(navController: NavController,
         composable<StartDestination> {
             StartRoute(
                 onNavigateToSignUp = { navController.navigate(SignUpDestination) },
-                onNavigateToLogin = { navController.navigate(SignInDestination) }
+                onNavigateToLogin = { navController.navigate(SignInDestination) },
+                onNavigateToWelcome = onAuthSuccess
             )
         }
 
@@ -41,9 +43,9 @@ fun NavGraphBuilder.authGraph(navController: NavController,
         }
 
         composable<ForgotPasswordDestination> {
-            /*ForgotPasswordRoute(
+            ForgotPasswordRoute(
                 onNavigateBack = { navController.popBackStack() }
-            )*/
+            )
         }
     }
 }

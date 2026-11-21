@@ -9,7 +9,7 @@ data object PersonalisationGraph
 data object WelcomeDestination
 
 @Serializable
-data object AimDestination
+data object OnboardingIntroDestination
 
 @Serializable
 data object OnboardingDestination

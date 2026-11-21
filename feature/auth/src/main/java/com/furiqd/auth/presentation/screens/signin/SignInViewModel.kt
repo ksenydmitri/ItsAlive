@@ -3,6 +3,7 @@ package com.furiqd.auth.presentation.screens.signin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.furiqd.auth.domain.usecase.AuthUseCases
+import com.furiqd.auth.presentation.elements.canSubmit
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper.AuthUiResult
 import com.furiqd.auth.presentation.helper.InputValidator
@@ -37,7 +38,7 @@ internal class SignInViewModel @Inject constructor(
             }
             is SignInEvent.SignInClicked -> {
                 val currentState = _uiState.value
-                if (currentState.isLoading || !currentState.canSignIn()) return
+                if (currentState.isLoading || !currentState.canSubmit()) return
                 _uiState.update { it.copy(isLoading = true) }
                 signInWithEmail(currentState.email, currentState.password)
             }
@@ -45,14 +46,14 @@ internal class SignInViewModel @Inject constructor(
                 val error = InputValidator.validateEmail(event.email)
                 _uiState.update { state ->
                     val newState = state.copy(email = event.email, emailError = error)
-                    newState.copy(isSignInEnabled = newState.canSignIn())
+                    newState.copy(isSignInEnabled = newState.canSubmit())
                 }
             }
             is SignInEvent.PasswordChanged -> {
                 val error = InputValidator.validatePassword(event.password)
                 _uiState.update { state ->
                     val newState = state.copy(password = event.password, passwordError = error)
-                    newState.copy(isSignInEnabled = newState.canSignIn())
+                    newState.copy(isSignInEnabled = newState.canSubmit())
                 }
             }
             is SignInEvent.GoToSignUpClicked -> {
@@ -109,10 +110,4 @@ internal class SignInViewModel @Inject constructor(
         }
     }
 
-    private fun SignInState.canSignIn(): Boolean {
-        return email.isNotBlank() &&
-            emailError == null &&
-            password.isNotBlank() &&
-            passwordError == null
-    }
 }

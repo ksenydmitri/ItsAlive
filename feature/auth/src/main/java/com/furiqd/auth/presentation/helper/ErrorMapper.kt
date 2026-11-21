@@ -23,5 +23,21 @@ fun ValidationError.Password.asString(): String {
 }
 
 internal fun Throwable.sanitizedMessage(): String {
-    return "Authentication failed"
+    val message = this.message ?: ""
+    return when {
+        message.contains("email-already-in-use", ignoreCase = true) ||
+            message.contains("collision", ignoreCase = true) ||
+            message.contains("already in use", ignoreCase = true) ->
+            "This email is already registered. Please sign in instead."
+        message.contains("invalid-credential", ignoreCase = true) ||
+            message.contains("wrong-password", ignoreCase = true) ||
+            message.contains("user-not-found", ignoreCase = true) ||
+            message.contains("invalid-email", ignoreCase = true) ||
+            message.contains("INVALID_LOGIN_CREDENTIALS", ignoreCase = true) ||
+            message.contains("ERROR_WRONG_PASSWORD", ignoreCase = true) ||
+            message.contains("ERROR_USER_NOT_FOUND", ignoreCase = true) ||
+            message.contains("ERROR_INVALID_CREDENTIAL", ignoreCase = true) ->
+            "Incorrect email or password. Please try again."
+        else -> "Authentication failed"
+    }
 }

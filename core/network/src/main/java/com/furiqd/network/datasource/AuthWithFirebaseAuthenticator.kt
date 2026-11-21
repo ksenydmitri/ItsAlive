@@ -24,17 +24,17 @@ class AuthWithFirebaseAuthenticator @Inject constructor(
         }
     }
 
-    suspend fun signUpWithEmailAndPassword(email: String, password: String): Result<Unit> =
-        registerOrReconcile(
-            createAccount = {
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                checkNotNull(result.user) { "Firebase user is null" }
-            },
-            confirmExistingAccount = {
-                val result = auth.signInWithEmailAndPassword(email, password).await()
-                checkNotNull(result.user) { "Firebase user is null" }
-            }
-        )
+    suspend fun signUpWithEmailAndPassword(email: String, password: String): Result<Unit> {
+        return try {
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            checkNotNull(result.user) { "Firebase user is null" }
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     suspend fun signInWithGoogleToken(idToken: String): Result<AuthResultDto> {
         return try {
