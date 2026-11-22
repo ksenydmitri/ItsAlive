@@ -27,6 +27,7 @@ import com.furiqd.shared.ui.elements.BackButton
 import com.furiqd.shared.ui.elements.ErrorSnackbar
 import com.furiqd.auth.presentation.elements.LoginWithGoogleButton
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper
+import com.furiqd.auth.presentation.helper.sanitizedMessage
 import com.furiqd.auth.presentation.helper.asString
 import kotlinx.coroutines.launch
 
@@ -45,113 +46,22 @@ fun SignUpScreen(
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        BackButton(
-            onClick = { onEvent(SignUpEvent.BackClicked) },
-            modifier = Modifier)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(id = R.string.auth_signup_title),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+        SignUpHeader(onBack = { onEvent(SignUpEvent.BackClicked) })
+        Spacer(modifier = Modifier.height(24.dp))
+        LoginWithGoogleButton(
+            onClick = { onEvent(SignUpEvent.GoogleClicked) },
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
+            enabled = !state.isLoading
         )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        LoginWithGoogleButton(onClick = { onEvent(SignUpEvent.GoogleClicked) },
-            modifier = Modifier)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(id = R.string.auth_or_email),
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = state.email,
-            onValueChange = { onEvent(SignUpEvent.EmailChanged(it)) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(id = R.string.auth_placeholder_email)) },
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
-        )
-
-        if (state.emailError != null) {
-            Text(
-                text = state.emailError.asString(),
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = state.password,
-            onValueChange = { onEvent(SignUpEvent.PasswordChanged(it)) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(id = R.string.auth_placeholder_password)) },
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        if (state.passwordError != null) {
-            Text(
-                text = state.passwordError.asString(),
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(id = R.string.auth_privacy_text),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                fontSize = 14.sp
-            )
-            Checkbox(
-                checked = state.isPrivacyChecked,
-                onCheckedChange = { onEvent(SignUpEvent.PrivacyChecked(it)) },            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = { onEvent(SignUpEvent.SignUpClicked) },
-            enabled = state.isSignUpEnabled && !state.isLoading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
-            } else {
-                Text(text = stringResource(id = R.string.auth_btn_get_started), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-        }
+        Spacer(modifier = Modifier.height(12.dp))
+        SignUpForm(state = state, onEvent = onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
@@ -181,7 +91,6 @@ fun SignUpScreen(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
@@ -219,8 +128,11 @@ fun SignUpRoute(
                             }
                             is AuthWithGoogleHelper.AuthUiResult.Failure -> {
                                 viewModel.onGoogleAuthFailed(
-                                    result.error.message ?: "Google Auth Failed"
+                                    result.error.sanitizedMessage()
                                 )
+                            }
+                            AuthWithGoogleHelper.AuthUiResult.Cancelled -> {
+                                viewModel.onGoogleAuthCancelled()
                             }
                         }
                     }

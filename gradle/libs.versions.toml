@@ -3,6 +3,7 @@
 agp = "8.7.2"
 kotlin = "2.0.21"
 kotlinxCoroutinesPlayServices = "1.11.0"
+kotlinxCoroutinesTest = "1.9.0"
 ksp = "2.0.21-1.0.27"
 googleServices = "4.4.2"
 
@@ -45,6 +46,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 coreKtxVersion = "1.19.1"
 firebase-messaging = "26.0.1"
+uiTestJunit4 = "1.13.0"
 
 [libraries]
 # AndroidX Core & Lifecycle
@@ -109,8 +111,10 @@ moshi-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", v
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "uiTestJunit4" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

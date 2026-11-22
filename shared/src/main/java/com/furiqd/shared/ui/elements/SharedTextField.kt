@@ -17,6 +17,7 @@ fun SharedTextField(
     modifier: Modifier = Modifier,
     label: String? = null,
     placeholder: String? = null,
+    prefixText: String? = null,
     isError: Boolean = false,
     errorMessage: String? = null,
     shape: RoundedCornerShape = RoundedCornerShape(24.dp)
@@ -27,6 +28,7 @@ fun SharedTextField(
         modifier = modifier.fillMaxWidth(),
         label = label?.let { { Text(it) } },
         placeholder = placeholder?.let { { Text(it) } },
+        prefix = prefixText?.let { { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) } },
         isError = isError,
         singleLine = true,
         shape = shape,

@@ -10,6 +10,6 @@ interface UserLocalDataSource {
     fun observeUserById(userId: String): Flow<LocalUserEntity?>
     suspend fun getUserById(userId: String): LocalUserEntity?
     suspend fun saveUser(user: LocalUserEntity)
-    suspend fun clearLocalData()
+    suspend fun clearLocalData(userId: String?)
     suspend fun getUsersByIds(ids: List<String>): List<LocalUserEntity>
 }

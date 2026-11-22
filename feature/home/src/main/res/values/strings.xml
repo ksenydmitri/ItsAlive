@@ -2,6 +2,35 @@
 <resources>
     <string name="app_name">ItsAlive</string>
     <string name="main_profile_description">View profile</string>
+    <string name="today_greeting_title">A little closer, daily.</string>
+    <string name="today_greeting_subtitle">Small moments. More us.</string>
+    <string name="today_streak_days">%1$d Days</string>
+    <string name="today_countdown_remaining">%1$s remaining</string>
+    <string name="today_countdown_caption">for daily challenge</string>
+    <string name="today_challenge_label">DAILY CHALLENGE</string>
+    <string name="today_day_label">Day %1$d</string>
+    <string name="today_label">Today</string>
+    <string name="today_photo_self">Your Photo</string>
+    <string name="today_photo_partner">Partner’s Photo</string>
+    <string name="today_photo_uploaded">✓ Uploaded</string>
+    <string name="today_photo_waiting">Waiting…</string>
+    <string name="today_photo_your_turn">Your turn</string>
+    <string name="today_action_take_photo">Take Photo</string>
+    <string name="today_action_visit_pet">Visit Pet</string>
+    <string name="today_room_ready_title">Your room is ready</string>
+    <string name="today_room_ready_message">Invite your partner with code %1$s.</string>
+    <string name="today_pair_action">Pair with a partner</string>
+    <string name="today_start_title">Start your story together</string>
+    <string name="today_start_message">Create a room or join your partner to begin daily challenges.</string>
+    <string name="today_get_started">Get started</string>
+    <string name="today_delete_room">Delete room</string>
+    <plurals name="today_buddy_streak">
+        <item quantity="one">%1$d day streak</item>
+        <item quantity="other">%1$d days streak</item>
+    </plurals>
+    <string name="today_tab_today">Today</string>
+    <string name="today_tab_pet_room">Pet room</string>
+    <string name="today_tab_pair">Pair</string>
 
     <string name="room_action_add">Add room</string>
     <string name="room_action_create_first">Create your first room</string>

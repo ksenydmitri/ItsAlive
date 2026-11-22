@@ -2,6 +2,7 @@ package com.furiqd.personalisation.presentation.screen.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.furiqd.personalisation.domain.ProfileValidator
 import com.furiqd.personalisation.domain.SaveUserUseCase
 import com.furiqd.shared.domain.model.User
 import com.furiqd.shared.domain.repository.UserRepository
@@ -28,27 +29,81 @@ class OnboardingViewModel @Inject constructor(
     private val _effect = Channel<OnboardingEffect>()
     val effect = _effect.receiveAsFlow()
 
+    init {
+        loadExistingProfile()
+    }
+
+    private fun loadExistingProfile() {
+        viewModelScope.launch {
+            val currentUser = userRepository.getUser()
+            if (currentUser != null && (currentUser.name.isNotBlank() || !currentUser.nickName.isNullOrBlank())) {
+                _uiState.update { state ->
+                    val newName = if (state.name.isBlank()) currentUser.name else state.name
+                    val newNickname = if (state.nickname.isBlank()) currentUser.nickName.orEmpty() else state.nickname
+                    val updatedState = state.copy(
+                        name = newName,
+                        nickname = newNickname
+                    )
+                    validateAndCopy(updatedState)
+                }
+            }
+        }
+    }
+
     fun handleEvent(event: OnboardingEvent) {
         when (event) {
             is OnboardingEvent.NicknameChanged -> {
                 _uiState.update { currentState ->
-                    val isError = event.nickname.isNotEmpty() && event.nickname.length !in 2..15
+                    val isError = event.nickname.isNotEmpty() &&
+                        ProfileValidator.validateNickName(event.nickname).isFailure
                     validateAndCopy(
                         currentState.copy(
                             nickname = event.nickname,
-                            isNicknameError = isError
+                            isNicknameError = isError,
+                            isNicknameTaken = false
                         )
                     )
+                }
+                viewModelScope.launch {
+                    val trimmed = event.nickname.trim()
+                    if (trimmed.length >= 2 && ProfileValidator.validateNickName(trimmed).isSuccess) {
+                        val isAvailable = userRepository.isNickNameAvailable(trimmed.lowercase())
+                        _uiState.update { currentState ->
+                            if (currentState.nickname == event.nickname) {
+                                val taken = !isAvailable
+                                validateAndCopy(
+                                    currentState.copy(
+                                        isNicknameTaken = taken
+                                    )
+                                )
+                            } else {
+                                currentState
+                            }
+                        }
+                    }
                 }
             }
 
             is OnboardingEvent.NameChanged -> {
                 _uiState.update { currentState ->
-                    val isError = event.name.isNotEmpty() && event.name.length !in 2..15
+                    val isError = event.name.isNotEmpty() &&
+                        ProfileValidator.validateName(event.name).isFailure
                     validateAndCopy(
                         currentState.copy(
                             name = event.name,
                             isNameError = isError
+                        )
+                    )
+                }
+            }
+
+            is OnboardingEvent.PresetColorSelected -> {
+                _uiState.update { currentState ->
+                    validateAndCopy(
+                        currentState.copy(
+                            selectedPresetColorHex = event.colorHex,
+                            localAvatarUri = null,
+                            selectedCustomBytes = null
                         )
                     )
                 }
@@ -76,9 +131,9 @@ class OnboardingViewModel @Inject constructor(
         }
     }
     private fun validateAndCopy(state: OnboardingState): OnboardingState {
-        val isNicknameValid = state.nickname.trim().length in 2..15
-        val isNameValid = state.name.trim().length in 2..15
-        val hasAvatar = state.selectedCustomBytes != null
+        val isNicknameValid = ProfileValidator.validateNickName(state.nickname).isSuccess && !state.isNicknameTaken
+        val isNameValid = ProfileValidator.validateName(state.name).isSuccess
+        val hasAvatar = true
 
         return state.copy(
             isNextButtonEnabled = isNicknameValid && isNameValid && hasAvatar

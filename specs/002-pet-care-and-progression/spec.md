@@ -110,8 +110,8 @@ A user must be able to preserve a streak during the 12-hour `AT_RISK` grace wind
 
 ### Key Entities *(include if feature involves data)*
 
-- **User**: Already exists from feature `001-auth-and-pairing`. This feature depends on the user's identity and room membership context for care actions and streak recovery decisions.
-- **PairingRoom**: Already exists from feature `001-auth-and-pairing`. It provides the shared room state, active streak status, and the room-level lock for care interaction validity.
+- **User**: Already exists from feature `001-authentication`. This feature depends on the user's identity and room membership context for care actions and streak recovery decisions.
+- **PairingRoom**: Already exists from feature `001-authentication`. It provides the shared room state, active streak status, and the room-level lock for care interaction validity.
 - **JointPet**: This feature is the owner of the business logic for stat changes, level progression, and mood evaluation of the shared pet. It exposes internal contracts for XP, Energy, and Happiness updates that subsequent features `003`, `004`, and `005` will consume.
 
 ## Success Criteria *(mandatory)*
@@ -126,7 +126,7 @@ A user must be able to preserve a streak during the 12-hour `AT_RISK` grace wind
 
 ## Assumptions
 
-- The identity, active room, and initial pet creation logic are already implemented by the preceding `001-auth-and-pairing` feature.
+- The identity, active room, and initial pet creation logic are already implemented by the preceding `001-authentication` feature.
 - The feature scope is intentionally limited to pet care, progression, mood evaluation, and streak protection; it does not include photo challenges, camera workflows, steps/sleep tracking, or geofence features.
 - `Feed` and `Play` actions operate based on a single shared room state and may be triggered by either partner, but not by any third party.
 - `freeShieldAvailable` is a room or user-level property that can be checked during the `AT_RISK` recovery flow.

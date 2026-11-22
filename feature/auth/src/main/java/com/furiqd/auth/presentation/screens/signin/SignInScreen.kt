@@ -26,6 +26,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +43,7 @@ import com.furiqd.auth.R
 import com.furiqd.shared.ui.elements.BackButton
 import com.furiqd.auth.presentation.elements.LoginWithGoogleButton
 import com.furiqd.auth.presentation.helper.asString
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignInScreen(
@@ -57,141 +60,22 @@ fun SignInScreen(
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        BackButton(
-            onClick = { onEvent(SignInEvent.BackClicked) },
-            modifier = Modifier)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
+        SignInHeader(onBack = { onEvent(SignInEvent.BackClicked) })
+        Spacer(modifier = Modifier.height(24.dp))
+        LoginWithGoogleButton(
+            onClick = { onEvent(SignInEvent.GoogleClicked) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !state.isLoading
+        )
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(id = R.string.auth_login_title),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+            text = stringResource(R.string.auth_login_or_email),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(200.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(24.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "🦕\n[Pixel Art Place]",
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-        LoginWithGoogleButton(onClick = { onEvent(SignInEvent.GoogleClicked) },
-            modifier = Modifier)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(id = R.string.auth_login_or_email),
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = state.email,
-            onValueChange = { onEvent(SignInEvent.EmailChanged(it)) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(id = R.string.auth_placeholder_email)) },
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
-        )
-
-        state.emailError?.let {
-            Text(
-                text = it.asString(),
-                color = MaterialTheme.colorScheme.error,
-                fontSize = 12.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = state.password,
-            onValueChange = { onEvent(SignInEvent.PasswordChanged(it)) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(id = R.string.auth_placeholder_password)) },
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        state.passwordError?.let {
-            Text(
-                text = it.asString(),
-                color = MaterialTheme.colorScheme.error,
-                fontSize = 12.sp
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(
-                onClick = {
-                    onEvent(SignInEvent.GoToSignUpClicked)
-                },
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.auth_forgot_password),
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.5.sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = { onEvent(SignInEvent.SignInClicked) },
-            enabled = state.isSignInEnabled && !state.isLoading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
-            } else {
-                Text(text = stringResource(id = R.string.auth_btn_get_started), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(modifier = Modifier.height(12.dp))
+        SignInForm(state = state, onEvent = onEvent)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -205,9 +89,8 @@ fun SignInScreen(
                 letterSpacing = 0.5.sp
             )
             TextButton(
-                onClick = {
-                    onEvent(SignInEvent.GoToSignUpClicked)
-                },
+                onClick = { onEvent(SignInEvent.GoToSignUpClicked) },
+                enabled = !state.isLoading,
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
@@ -219,7 +102,6 @@ fun SignInScreen(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
@@ -234,6 +116,8 @@ fun SignInRoute(
     val viewModel: SignInViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -242,13 +126,27 @@ fun SignInRoute(
                 SignInEffect.NavigateBack -> onNavigateBack()
                 SignInEffect.NavigateToSignUp -> onNavigateToSignUp()
                 SignInEffect.NavigateToForgotPassword -> onNavigateToForgotPassword()
-                is SignInEffect.ShowError -> { /* Показать Snackbar */ }
+                is SignInEffect.ShowError -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(effect.message, withDismissAction = true)
+                    }
+                }
             }
         }
     }
 
-    SignInScreen(
-        state = state,
-        onEvent = { event -> viewModel.handleEvent(event, context) }
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        SignInScreen(
+            state = state,
+            onEvent = { event -> viewModel.handleEvent(event, context) },
+            modifier = Modifier.fillMaxSize()
+        )
+        androidx.compose.material3.SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(16.dp)
+        )
+    }
 }

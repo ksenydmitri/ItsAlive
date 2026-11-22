@@ -6,6 +6,9 @@
     <string name="auth_start_btn_signup">SIGN UP</string>
     <string name="auth_start_already_have_account">ALREADY HAVE AN ACCOUNT? </string>
     <string name="auth_start_btn_login">LOG IN</string>
+    <string name="auth_start_email_signin">Continue with email</string>
+    <string name="auth_start_new_here">New to ItsAlive?</string>
+    <string name="auth_pet_egg_description">A pet egg</string>
 
     <string name="auth_signup_title">Create your account</string>
     <string name="auth_continue_google">CONTINUE WITH GOOGLE</string>
@@ -17,6 +20,8 @@
     <string name="auth_btn_get_started">GET STARTED</string>
 
     <string name="auth_login_title">Welcome back!</string>
+    <string name="auth_signin_submit">Sign in</string>
+    <string name="auth_signup_submit">Create account</string>
     <string name="auth_login_or_email">OR LOG IN WITH EMAIL</string>
     <string name="auth_forgot_password">Forgot password?</string>
     <string name="auth_login_dont_have_account">STILL DON\'T HAVE AN ACCOUNT?</string>
@@ -24,6 +29,19 @@
 
     <string name="auth_forgot_password_title">Check your email</string>
     <string name="auth_forgot_password_desc">We\'ve sent a verification link and instructions to your email address to reset your password.</string>
+    <string name="auth_recovery_neutral_confirmation">If an account exists for this address, password reset instructions will be sent.</string>
+    <string name="auth_recovery_send_link">Send link</string>
+    <string name="auth_recovery_try_again">Please try again later.</string>
+    <string name="auth_recovery_cooldown">Try again in %1$d seconds</string>
+    <string name="auth_recovery_cooldown_ready">You can request another link.</string>
+    <string name="auth_recovery_dismiss">Close</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_password">Hide password</string>
+    <string name="auth_clear_field">Clear field</string>
+    <string name="auth_password_strength_weak">Weak</string>
+    <string name="auth_password_strength_medium">Medium</string>
+    <string name="auth_password_strength_strong">Strong</string>
+    <string name="auth_privacy_consent">I agree to the Terms of Service and Privacy Policy</string>
     <string name="auth_btn_open_email">OPEN EMAIL APP</string>
     <string name="auth_btn_resend">RESEND CODE</string>
 
@@ -34,6 +52,6 @@
 
     <string name="error_password_empty">Field password cannot be empty</string>
     <string name="error_password_too_short">Password must be at least 8 characters</string>
-    <string name="error_password_invalid_characters">Password must contain only letters and numbers</string>
+    <string name="error_password_invalid_characters">Password must include uppercase and lowercase letters and a number</string>
 
 </resources>

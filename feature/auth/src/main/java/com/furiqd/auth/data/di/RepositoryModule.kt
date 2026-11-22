@@ -2,8 +2,6 @@ package com.furiqd.auth.data.di
 
 import com.furiqd.auth.data.repository.AuthRepository
 import com.furiqd.auth.data.repository.AuthRepositoryImpl
-import com.furiqd.auth.data.repository.TokenRepository
-import com.furiqd.auth.data.repository.TokenRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -19,10 +17,4 @@ internal abstract class RepositoryModule {
     abstract fun bindAuthRepository(
         authRepositoryImpl: AuthRepositoryImpl
     ): AuthRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindTokenRepository(
-        tokenRepositoryImpl: TokenRepositoryImpl
-    ): TokenRepository
 }

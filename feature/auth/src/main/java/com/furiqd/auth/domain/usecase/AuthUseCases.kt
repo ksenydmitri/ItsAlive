@@ -1,24 +1,24 @@
 package com.furiqd.auth.domain.usecase
 
+import com.furiqd.auth.domain.repository.AuthRepository
 import com.furiqd.shared.domain.model.User
-import com.furiqd.auth.data.repository.AuthRepository
-import com.furiqd.auth.data.repository.TokenRepository
 import com.furiqd.shared.domain.repository.UserRepository
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 internal class SignInWithEmailAndPasswordUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val userRepository: UserRepository,
-    private val tokenRepository: TokenRepository
+    private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(email: String, password: String): Result<Boolean> {
         return try {
-            val token = authRepository.signInWithEmailAndPassword(email, password).getOrThrow()
-            tokenRepository.saveToken(token)
+            authRepository.signInWithEmailAndPassword(email, password).getOrThrow()
             userRepository.syncSession()
 
             val isOnboardingCompleted = userRepository.checkIsOnboardingCompleted()
             Result.success(isOnboardingCompleted)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -27,13 +27,11 @@ internal class SignInWithEmailAndPasswordUseCase @Inject constructor(
 
 internal class SignUpWithEmailAndPasswordUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val tokenRepository: TokenRepository,
     private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(email: String, password: String): Result<Boolean> {
         return try {
-            val token = authRepository.signUpWithEmailAndPassword(email, password).getOrThrow()
-            tokenRepository.saveToken(token)
+            authRepository.signUpWithEmailAndPassword(email, password).getOrThrow()
             userRepository.saveUser(
                 User(
                     id = "",
@@ -44,8 +42,10 @@ internal class SignUpWithEmailAndPasswordUseCase @Inject constructor(
                     email = email,
                     nickName = null
                 )
-            )
+            ).getOrThrow()
             Result.success(false)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -54,15 +54,13 @@ internal class SignUpWithEmailAndPasswordUseCase @Inject constructor(
 
 internal class SignInWithGoogleUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val userRepository: UserRepository,
-    private val tokenRepository: TokenRepository
+    private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(idToken: String): Result<Boolean> = try {
         val authResult = authRepository.signInWithGoogle(idToken).getOrThrow()
-        tokenRepository.saveToken(authResult.token)
-        userRepository.syncSession()
+        userRepository.syncSession().getOrThrow()
         val existingUser = userRepository.getUser()
-        
+
         val isOnboardingCompleted = if (existingUser == null) {
             val newUser = User(
                 id = "",
@@ -73,13 +71,27 @@ internal class SignInWithGoogleUseCase @Inject constructor(
                 email = authResult.email,
                 nickName = null
             )
-            userRepository.saveUser(newUser)
+            userRepository.saveUser(newUser).getOrThrow()
             false
         } else {
             existingUser.isOnboardingCompleted
         }
-        
+
         Result.success(isOnboardingCompleted)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
+
+internal class SendPasswordResetEmailUseCase @Inject constructor(
+    private val authRepository: AuthRepository
+) {
+    suspend operator fun invoke(email: String): Result<Unit> = try {
+        authRepository.sendPasswordResetEmail(email.trim())
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         Result.failure(e)
     }
@@ -88,5 +100,6 @@ internal class SignInWithGoogleUseCase @Inject constructor(
 internal data class AuthUseCases @Inject constructor(
     val signInWithEmailAndPassword: SignInWithEmailAndPasswordUseCase,
     val signUpWithEmailAndPassword: SignUpWithEmailAndPasswordUseCase,
-    val signInWithGoogle: SignInWithGoogleUseCase
+    val signInWithGoogle: SignInWithGoogleUseCase,
+    val sendPasswordResetEmail: SendPasswordResetEmailUseCase
 )

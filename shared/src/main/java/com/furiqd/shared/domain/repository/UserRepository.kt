@@ -16,4 +16,5 @@ interface UserRepository {
     suspend fun updateUser(user: User): Result<Unit>
     suspend fun getUserById(userId: String): User?
     suspend fun updateFcmToken(token: String): Result<Unit>
+    suspend fun isNickNameAvailable(nickName: String): Boolean
 }

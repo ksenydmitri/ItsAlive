@@ -5,13 +5,11 @@ import com.furiqd.local.contract.ImageLocalDataSource
 import com.furiqd.local.contract.PairingLocalDataSource
 import com.furiqd.local.contract.PetLocalDataSource
 import com.furiqd.local.contract.RoomLocalDataSource
-import com.furiqd.local.contract.TokenLocalDataSource
 import com.furiqd.local.contract.UserLocalDataSource
 import com.furiqd.local.datasource.ImageLocalDataSourceImpl
 import com.furiqd.local.datasource.PairingLocalDataSourceImpl
 import com.furiqd.local.datasource.PetLocalDataSourceImpl
 import com.furiqd.local.datasource.RoomLocalDataSourceImpl
-import com.furiqd.local.datasource.TokenLocalDataSourceImpl
 import com.furiqd.local.datasource.UserLocalDataSourceImpl
 import dagger.Binds
 import dagger.Module
@@ -27,12 +25,6 @@ abstract class LocalDataSourceModule {
     abstract fun bindUserLocalDataSource(
         userLocalDataSourceImpl: UserLocalDataSourceImpl
     ): UserLocalDataSource
-
-    @Binds
-    @Singleton
-    abstract fun bindTokenLocalDataSource(
-        tokenLocalDataSourceImpl: TokenLocalDataSourceImpl
-    ): TokenLocalDataSource
 
     @Binds
     @Singleton

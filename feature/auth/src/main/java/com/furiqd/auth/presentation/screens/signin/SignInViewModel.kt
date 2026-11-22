@@ -3,9 +3,11 @@ package com.furiqd.auth.presentation.screens.signin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.furiqd.auth.domain.usecase.AuthUseCases
+import com.furiqd.auth.presentation.elements.canSubmit
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper
 import com.furiqd.auth.presentation.helper.AuthWithGoogleHelper.AuthUiResult
 import com.furiqd.auth.presentation.helper.InputValidator
+import com.furiqd.auth.presentation.helper.sanitizedMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,28 +32,29 @@ internal class SignInViewModel @Inject constructor(
     fun handleEvent(event: SignInEvent, context: android.content.Context? = null) {
         when (event) {
             is SignInEvent.GoogleClicked -> {
-                context?.let { signInWithGoogle(it) }
+                if (!_uiState.value.isLoading) {
+                    context?.let { signInWithGoogle(it) }
+                }
             }
             is SignInEvent.SignInClicked -> {
+                val currentState = _uiState.value
+                if (currentState.isLoading || !currentState.canSubmit()) return
                 _uiState.update { it.copy(isLoading = true) }
-                signInWithEmail()
+                signInWithEmail(currentState.email, currentState.password)
             }
             is SignInEvent.EmailChanged -> {
                 val error = InputValidator.validateEmail(event.email)
-                _uiState.update {
-                    it.copy(
-                        email = event.email,
-                        emailError = error,
-                        isSignInEnabled = it.password.isNotBlank() && error == null
-                    )
+                _uiState.update { state ->
+                    val newState = state.copy(email = event.email, emailError = error)
+                    newState.copy(isSignInEnabled = newState.canSubmit())
                 }
             }
             is SignInEvent.PasswordChanged -> {
                 val error = InputValidator.validatePassword(event.password)
-                _uiState.update { it.copy(
-                    password = event.password,
-                    passwordError = error,
-                    isSignInEnabled = it.email.isNotBlank() && error == null) }
+                _uiState.update { state ->
+                    val newState = state.copy(password = event.password, passwordError = error)
+                    newState.copy(isSignInEnabled = newState.canSubmit())
+                }
             }
             is SignInEvent.GoToSignUpClicked -> {
                 viewModelScope.launch { _uiEffect.send(SignInEffect.NavigateToSignUp) }
@@ -77,31 +80,34 @@ internal class SignInViewModel @Inject constructor(
                         _uiEffect.send(SignInEffect.NavigateToWelcome(isOnboardingCompleted))
                     }.onFailure { error ->
                         _uiState.update { it.copy(isLoading = false) }
-                        _uiEffect.send(SignInEffect.ShowError(error.message ?: "Неизвестная ошибка"))
+                        _uiEffect.send(SignInEffect.ShowError(error.sanitizedMessage()))
                     }
+                }
+                is AuthUiResult.Cancelled -> {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
                 is AuthUiResult.Failure -> {
                     _uiState.update { it.copy(isLoading = false) }
-                    _uiEffect.send(SignInEffect.ShowError(uiResult.error.message ?: "Неизвестная ошибка"))
+                    _uiEffect.send(SignInEffect.ShowError(uiResult.error.sanitizedMessage()))
                 }
             }
         }
     }
 
-    private fun signInWithEmail() {
-        _uiState.update { it.copy(isLoading = true) }
+    private fun signInWithEmail(email: String, password: String) {
         viewModelScope.launch {
             val result = authUseCases.signInWithEmailAndPassword(
-                email = _uiState.value.email,
-                password = _uiState.value.password
+                email = email,
+                password = password
             )
             result.onSuccess { isOnboardingCompleted ->
                 _uiState.update { it.copy(isLoading = false) }
                 _uiEffect.send(SignInEffect.NavigateToWelcome(isOnboardingCompleted))
             }.onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                _uiEffect.send(SignInEffect.ShowError(error.message ?: "Неверный логин или пароль"))
+                _uiEffect.send(SignInEffect.ShowError(error.sanitizedMessage()))
             }
         }
     }
+
 }

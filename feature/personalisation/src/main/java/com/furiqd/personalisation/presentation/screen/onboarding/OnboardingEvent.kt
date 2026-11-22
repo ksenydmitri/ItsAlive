@@ -3,6 +3,7 @@ package com.furiqd.personalisation.presentation.screen.onboarding
 sealed interface OnboardingEvent {
     data class NicknameChanged(val nickname: String) : OnboardingEvent
     data class NameChanged(val name: String) : OnboardingEvent
+    data class PresetColorSelected(val colorHex: String) : OnboardingEvent
     object NextClicked : OnboardingEvent
     object UploadCustomAvatarClicked : OnboardingEvent
     class CustomAvatarSelected(val bytes: ByteArray, val uri: String) : OnboardingEvent {

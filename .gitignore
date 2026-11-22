@@ -1,5 +1,11 @@
 *.iml
 .gradle
+build/
+out/
+*.class
+*.jar
+*.log
+.env*
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -8,7 +14,11 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .idea/
+.vscode/
 .DS_Store
+Thumbs.db
+*.tmp
+*.swp
 /build
 /captures
 .externalNativeBuild

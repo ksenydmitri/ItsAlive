@@ -21,15 +21,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.furiqd.auth.R
-import com.furiqd.auth.presentation.screens.signin.SignInEvent
 
 @Composable
 fun LoginWithGoogleButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = { onClick() },
+        enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp),

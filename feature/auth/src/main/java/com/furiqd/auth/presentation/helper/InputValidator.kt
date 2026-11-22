@@ -1,5 +1,6 @@
 package com.furiqd.auth.presentation.helper
 
+import com.furiqd.auth.domain.model.PasswordStrength
 import com.furiqd.auth.domain.model.ValidationError
 
 object InputValidator {
@@ -24,4 +25,7 @@ object InputValidator {
         }
         return null
     }
+
+    fun passwordStrength(password: String): PasswordStrength =
+        PasswordStrength.calculate(password)
 }

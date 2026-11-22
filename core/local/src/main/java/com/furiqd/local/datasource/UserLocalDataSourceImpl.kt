@@ -36,8 +36,12 @@ class UserLocalDataSourceImpl @Inject constructor(
         userDao.insertUser(user)
     }
 
-    override suspend fun clearLocalData() {
-        userDao.clearUser()
+    override suspend fun clearLocalData(userId: String?) {
+        if (userId == null) {
+            userDao.clearUsers()
+        } else {
+            userDao.clearUser(userId)
+        }
         preferencesManager.clear()
     }
 

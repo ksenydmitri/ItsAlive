@@ -11,5 +11,6 @@ interface RemoteAuthDataSource {
     suspend fun checkOnboardingStatus(userId: String): Boolean
     suspend fun updateFcmToken(userId: String, token: String)
     suspend fun saveOnboardingStatus(userId: String, isCompleted: Boolean): Boolean
+    suspend fun isNickNameAvailable(nickName: String): Boolean
     suspend fun signOut()
 }

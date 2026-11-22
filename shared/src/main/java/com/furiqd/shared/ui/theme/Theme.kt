@@ -2,18 +2,27 @@ package com.furiqd.shared.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = NeonGreen,
-    onPrimary = BackgroundDark,
+    primary = PrimaryDark,
+    onPrimary = OnPrimaryDark,
     primaryContainer = PrimaryContainerDark,
     onPrimaryContainer = OnPrimaryContainerDark,
 
-    secondary = NeonCyan,
-    onSecondary = BackgroundDark,
+    secondary = SecondaryDark,
+    onSecondary = OnSecondaryDark,
+    secondaryContainer = SecondaryContainerDark,
+    onSecondaryContainer = OnSecondaryContainerDark,
+    tertiary = TertiaryDark,
+    tertiaryContainer = TertiaryContainerDark,
+    onTertiaryContainer = OnTertiaryContainerDark,
 
     background = BackgroundDark,
     onBackground = TextPrimaryDark,
@@ -27,17 +36,23 @@ private val DarkColorScheme = darkColorScheme(
 
     error = ErrorRed,
     errorContainer = ErrorContainerDark,
-    onErrorContainer = ErrorRed
+    onError = Color(0xFFFFFFFF),
+    onErrorContainer = Color(0xFFFFB4AB)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = DayGreen,
-    onPrimary = SurfaceLight,
+    primary = PrimaryLight,
+    onPrimary = OnPrimaryLight,
     primaryContainer = PrimaryContainerLight,
     onPrimaryContainer = OnPrimaryContainerLight,
 
-    secondary = DayCyan,
-    onSecondary = SurfaceLight,
+    secondary = SecondaryLight,
+    onSecondary = OnSecondaryLight,
+    secondaryContainer = SecondaryContainerLight,
+    onSecondaryContainer = OnSecondaryContainerLight,
+    tertiary = TertiaryLight,
+    tertiaryContainer = TertiaryContainerLight,
+    onTertiaryContainer = OnTertiaryContainerLight,
 
     background = BackgroundLight,
     onBackground = TextPrimaryLight,
@@ -51,7 +66,16 @@ private val LightColorScheme = lightColorScheme(
 
     error = ErrorRed,
     errorContainer = ErrorContainerLight,
-    onErrorContainer = ErrorRed
+    onError = Color(0xFFFFFFFF),
+    onErrorContainer = Color(0xFF93000A)
+)
+
+private val AppShapes = Shapes(
+    extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+    small = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+    medium = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+    large = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+    extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(32.dp)
 )
 
 @Composable
@@ -63,6 +87,8 @@ fun ItsAliveTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        shapes = AppShapes,
+        typography = Typography(),
         content = content
     )
 }
